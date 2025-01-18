@@ -1,0 +1,55 @@
+{
+    "name": "map-frr",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build",
+        "lint": "vue-cli-service lint",
+        "postinstall": "patch-package"
+    },
+    "dependencies": {
+        "@fancyapps/ui": "^4.0.0-alpha.4",
+        "@vue-leaflet/vue-leaflet": "^0.6.1",
+        "@vueform/slider": "^2.1.5",
+        "bootstrap": "^5.1.3",
+        "core-js": "^3.6.5",
+        "leaflet": "^1.6.0",
+        "leaflet.markercluster": "^1.5.0",
+        "lodash": "^4.17.21",
+        "patch-package": "^6.4.7",
+        "vue": "^3.2.40",
+        "vuex": "^4.0.0-0"
+    },
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "^5.0.8",
+        "@vue/cli-plugin-eslint": "^5.0.8",
+        "@vue/cli-plugin-vuex": "^5.0.8",
+        "@vue/cli-service": "^5.0.8",
+        "@vue/compiler-sfc": "^3.0.0",
+        "babel-eslint": "^10.1.0",
+        "eslint": "^7.5.0",
+        "eslint-plugin-vue": "^7.0.0",
+        "sass": "^1.55.0",
+        "sass-loader": "^13.1.0"
+    },
+    "eslintConfig": {
+        "root": true,
+        "env": {
+            "node": true
+        },
+        "extends": [
+            "plugin:vue/vue3-essential",
+            "eslint:recommended"
+        ],
+        "parserOptions": {
+            "parser": "babel-eslint"
+        },
+        "rules": {}
+    },
+    "browserslist": [
+        "> 1%",
+        "last 2 versions",
+        "not dead"
+    ]
+}
