@@ -1,3 +1,5 @@
+import { api } from '@/api'
+
 export default {
     state: {
         districts: [],
@@ -12,11 +14,13 @@ export default {
         },
     },
     actions: {
-        async fetchDistricts(ctx) {
-            const res = await fetch('./districts.json')
-            const districts = (await res.json()).features
-
-            ctx.commit('updateDistricts', districts)
+        async fetchDistricts({ commit }) {
+            try {
+                const data = await api.getDistricts()
+                commit('updateDistricts', data.features)
+            } catch (e) {
+                console.error('Ошибка при загрузке районов:', e)
+            }
         },
         setShowDistricts({ commit }, value) {
             commit('setShowDistricts', value)

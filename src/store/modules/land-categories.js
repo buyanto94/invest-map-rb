@@ -1,11 +1,14 @@
+import { api } from '@/api'
+
 export default {
     actions: {
-        async fetchLandCategories(ctx) {
-            const res = await fetch('./example_available-land-categories.json')
-            // const res = await fetch('https://invest-buryatia.ru/map/available-land-categories.php')
-            const land_categories = await res.json()
-
-            ctx.commit('updateLandCategories', land_categories)
+        async fetchLandCategories({ commit }) {
+            try {
+                const data = await api.getLandCategories()
+                commit('updateLandCategories', data)
+            } catch (e) {
+                console.error('Ошибка загрузки категорий земель:', e)
+            }
         },
     },
     mutations: {
