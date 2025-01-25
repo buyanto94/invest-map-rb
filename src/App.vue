@@ -62,6 +62,7 @@
 import _ from 'lodash'
 import { mapGetters, mapActions } from 'vuex'
 import { polygonCenter } from '@/utils/polygon'
+import { filterObjects, searchObjects } from '@/utils/filter-objects'
 
 import AppModal from './components/ui/AppModal'
 import AppMessage from './components/ui/AppMessage'
@@ -90,14 +91,12 @@ export default {
         return {
             shareModal: false,
             selectMapModal: false,
-            filteredObj: [],
             zoom: 6,
             center: [53.328248, 108.837283],
-
             filter: null,
             searchResults: [],
             searchResultsText: '',
-            getSearchResults: Function,
+            debouncedSearch: null,
         }
     },
 
@@ -105,64 +104,18 @@ export default {
         ...mapGetters(['activeObject', 'districts', 'showDistricts', 'allObjects', 'layers']),
 
         filteredByMainParams() {
-            if (!this.inputSearch && this.filter) {
-                return this.allObjects
-                    .filter((item) => {
-                        //Фильтер по району municipalArea
-                        return item.municipalArea == this.filter.district || this.filter.district == null
-                    })
-                    .filter((item) => {
-                        // Фильтер по категории земель
-                        return item.landCategory == this.filter.landCategory || this.filter.landCategory == null
-                    })
-                    .filter((item) => {
-                        // Фильтер по типу
-                        return item.typeArea.toLowerCase() == this.filter.typeArea || this.filter.typeArea == null
-                    })
-                    .filter((item) => {
-                        // Фильтер по площади
-                        return (
-                            +item.area.replace(',', '.') >= this.filter.area[0] &&
-                            +item.area.replace(',', '.') <= this.filter.area[1]
-                        )
-                    })
-                    .filter((item) => {
-                        // Фильтер по дистанции до уу
-                        return (
-                            item.distanceToUU >= this.filter.distanceToUU[0] &&
-                            item.distanceToUU <= this.filter.distanceToUU[1]
-                        )
-                    })
-                    .filter((item) => {
-                        // Фильтер по форме собственности
-                        return (
-                            item.typeOfOwnership.id == this.filter.typeOfOwnership ||
-                            this.filter.typeOfOwnership == null
-                        )
-                    })
-            } else {
-                return this.allObjects
+            if (!this.filter) return this.allObjects
+            
+            const countFilter = { 
+                ...this.filter, 
+                childCategories: [], 
+                categoriesGroups: [] 
             }
-        },
-
-        filteredByCheckedChildCategories() {
-            if (this.filter) {
-                return this.filteredByMainParams.filter((item) => {
-                    return this.filter.childCategories.indexOf(item.category.id) != -1
-                })
-            } else {
-                return this.filteredByMainParams
-            }
+            return filterObjects(this.allObjects, countFilter)
         },
 
         filterResults() {
-            if (this.filter) {
-                return this.filteredByCheckedChildCategories.filter((item) => {
-                    return this.filter.categoriesGroups.indexOf(item.category.parentId) != -1
-                })
-            } else {
-                return this.filteredByCheckedChildCategories
-            }
+            return filterObjects(this.allObjects, this.filter)
         },
 
         inputSearch() {
@@ -197,6 +150,8 @@ export default {
             this.zoom = 16
 
             setTimeout(() => {
+                if (!this.activeObject) return;
+                
                 if (Array.isArray(this.activeObject.coords[0])) {
                     this.center = [...polygonCenter(this.activeObject['coords'])]
                 } else {
@@ -205,12 +160,22 @@ export default {
                 this.zoom = 18
             }, 1)
         },
+
+        performSearch() {
+            this.searchResults = []
+            const searchText = this.inputSearch
+
+            if (searchText) {
+                this.searchResults = searchObjects(this.allObjects, searchText)
+                this.searchResultsText = `Найдено ${this.searchResults.length} объектов`
+            }
+        }
     },
 
     watch: {
         inputSearch() {
-            this.getSearchResults()
-            this.searchResultsText = 'Ожидаю, когда вы закончите печатать...'
+            this.searchResultsText = 'Поиск...'
+            this.debouncedSearch()
         },
 
         activeObject(val, oldVal) {
@@ -222,7 +187,6 @@ export default {
                     } else {
                         this.center = [...oldVal['coords']]
                     }
-
                     this.zoom = 8
                 }, 1)
             }
@@ -234,44 +198,22 @@ export default {
     },
 
     async mounted() {
+        this.debouncedSearch = _.debounce(this.performSearch, 500)
+
         await this.fetchObjects()
 
-        // for debounce start
-        const search = () => {
-            this.searchResults = []
-
-            const searchText = this.inputSearch.toLowerCase()
-
-            if (searchText !== '') {
-                this.searchResults = this.allObjects.filter((item) => {
-                    let itemStr = JSON.stringify(item).toLowerCase()
-
-                    return itemStr.indexOf(searchText) != -1
-                })
-
-                this.searchResultsText = `Найдено ${this.searchResults.length} объектов`
-            }
-        }
-
-        this.getSearchResults = _.debounce(search, 500)
-        // for debounce end
-
-        let urlParams = new URLSearchParams(window.location.search)
+        // Обработка URL параметров (если ссылка на конкретный объект)
+        const urlParams = new URLSearchParams(window.location.search)
+        
         if (urlParams.has('object')) {
-            let id = urlParams.get('object')
-            let obj = this.allObjects.find((item) => {
-                return item.id == id
-            })
-
-            this.setActiveObject(obj)
+            const id = urlParams.get('object')
+            const obj = this.allObjects.find((item) => item.id == id)
+            if (obj) this.setActiveObject(obj)
         }
 
         if (urlParams.has('zoom') && urlParams.has('lat') && urlParams.has('lng')) {
-            let zoom = urlParams.get('zoom')
-            let lat = urlParams.get('lat')
-            let lng = urlParams.get('lng')
-            this.zoom = +zoom
-            this.center = [lat, lng]
+            this.zoom = +urlParams.get('zoom')
+            this.center = [urlParams.get('lat'), urlParams.get('lng')]
         }
 
         if (window.innerWidth >= 992) {
