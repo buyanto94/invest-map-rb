@@ -1,38 +1,35 @@
 <template>
     <div class="object-details" v-if="activeObject">
+
         <div class="object-card-prev">
             <div class="object-card-prev__btn" @click="fullscreenObject = true">
                 <i class="fa fa-arrows-alt" aria-hidden="true"></i>
             </div>
-            <div class="object-card-prev__category">{{ activeObject['category']['name'] }}</div>
-            <div class="object-card-prev__title">{{ activeObject['title'] }}</div>
-            <div class="object-card-prev__address">{{ activeObject['address'] }}</div>
+            <div class="object-card-prev__category">{{ activeObject.category?.name }}</div>
+            <div class="object-card-prev__title">{{ activeObject.title }}</div>
+            <div class="object-card-prev__address">{{ activeObject.address }}</div>
         </div>
 
-        <div class="object-card custom-scroll" :class="{ fullscreen: fullscreenObject }" v-if="activeObject">
+        <div class="object-card custom-scroll" :class="{ fullscreen: fullscreenObject }">
             <div class="object-card__category">
-                {{ activeObject['category']['name'] }}
+                {{ activeObject.category?.name }}
             </div>
             <a href="#" class="object-card__close" @click.prevent="close()">
-                <img src="./../assets/img/card/close-line.png" alt="" />
+                <img src="./../assets/img/card/close-line.png" alt="Close" />
             </a>
 
             <div class="object-card__gallery">
-                <div class="card-gallery" v-if="activeObject['photos']">
+                <div class="card-gallery" v-if="activeObject.photos && activeObject.photos.length">
                     <div class="card-gallery__main">
-                        <a :href="activeObject['photos'][0]" data-fancybox="gallery">
-                            <img :src="activeObject['photos'][0]" alt="" />
+                        <a :href="activeObject.photos[0]" data-fancybox="gallery">
+                            <img :src="activeObject.photos[0]" alt="" />
                         </a>
                     </div>
                     <div class="card-gallery__thumbs">
                         <div class="row">
-                            <div
-                                class="col-3"
-                                v-for="(item, index) in activeObject['photos']"
-                                :key="index"
-                                v-show="index != 0"
-                            >
-                                <a :href="item" data-fancybox="gallery" v-if="index != 0">
+                            <div class="col-3" v-for="(item, index) in activeObject.photos" :key="index"
+                                v-show="index !== 0">
+                                <a :href="item" data-fancybox="gallery">
                                     <img :src="item" alt="" />
                                 </a>
                             </div>
@@ -40,143 +37,113 @@
                     </div>
                 </div>
             </div>
-            <div class="object-card__name">
-                {{ activeObject['title'] }}
-            </div>
+
+            <div class="object-card__name">{{ activeObject.title }}</div>
+
             <div class="object-card__typearea card-data-block">
-                <span class="card-badge">
-                    {{ activeObject['typeArea'] }}
-                </span>
+                <span class="card-badge">{{ activeObject.typeArea }}</span>
             </div>
+
             <div class="row">
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Общая площадь(га)</div>
-                        <div class="card-data-block__text">
-                            {{ activeObject['area'] }}
-                        </div>
+                        <div class="card-data-block__text">{{ activeObject.area }}</div>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Свободная площадь(га)</div>
-                        <div class="card-data-block__text">
-                            {{ activeObject['free_area'] }}
-                        </div>
+                        <div class="card-data-block__text">{{ activeObject.free_area || '-' }}</div>
                     </div>
                 </div>
             </div>
+
             <div class="row">
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Адрес:</div>
-                        <div class="card-data-block__text">
-                            {{ activeObject['address'] }}
-                        </div>
+                        <div class="card-data-block__text">{{ activeObject.address }}</div>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Кадастровый номер</div>
-                        <div class="card-data-block__text">
-                            {{ activeObject['cadastralNumber'] }}
-                        </div>
+                        <div class="card-data-block__text">{{ activeObject.cadastralNumber }}</div>
                     </div>
                 </div>
             </div>
 
             <div class="card-data-block object-card__icons">
-                <div class="prop-icon" title="Электричество" :class="{ has: activeObject['powerSupply'] }">
+                <div class="prop-icon" title="Электричество" :class="{ has: activeObject.powerSupply }">
                     <img src="./../assets/img/card/light.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Газ" :class="{ has: activeObject['gasSupply'] }">
+                <div class="prop-icon" title="Газ" :class="{ has: activeObject.gasSupply }">
                     <img src="./../assets/img/card/gas.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Водоснабжение" :class="{ has: activeObject['waterSupply'] }">
+                <div class="prop-icon" title="Водоснабжение" :class="{ has: activeObject.waterSupply }">
                     <img src="./../assets/img/card/water.png" alt="" />
                 </div>
-                <!-- вместо транспорт инет -->
-                <div
-                    class="prop-icon"
-                    title="Интернет"
-                    :class="{ has: activeObject['transportInfrastructureAvailability'] }"
-                >
+                <div class="prop-icon" title="Интернет"
+                    :class="{ has: activeObject.transportInfrastructureAvailability }">
                     <img src="./../assets/img/card/enet.png" alt="" />
                 </div>
-
-                <div class="prop-icon" title="Водоотведение" :class="{ has: activeObject['waterDisposal'] }">
+                <div class="prop-icon" title="Водоотведение" :class="{ has: activeObject.waterDisposal }">
                     <img src="./../assets/img/card/water-out.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Теплоснабжение" :class="{ has: activeObject['heatSupply'] }">
+                <div class="prop-icon" title="Теплоснабжение" :class="{ has: activeObject.heatSupply }">
                     <img src="./../assets/img/card/heating.png" alt="" />
                 </div>
             </div>
 
             <div class="card-data-block">
                 <div class="card-data-block__title">Категория земель</div>
-                <div class="card-data-block__text">
-                    {{ getLangCategory(activeObject['landCategory']) }}
-                </div>
+                <div class="card-data-block__text">{{ getLangCategory(activeObject.landCategory) }}</div>
             </div>
             <div class="card-data-block">
                 <div class="card-data-block__title">Форма собственности</div>
-                <div class="card-data-block__text">
-                    {{ activeObject['typeOfOwnership']['title'] }}
-                </div>
+                <div class="card-data-block__text">{{ activeObject.typeOfOwnership?.title }}</div>
             </div>
-            <div class="card-data-block" v-if="activeObject['manager']">
+
+            <div class="card-data-block" v-if="activeObject.manager">
                 <div class="card-data-block__title">Контактное лицо</div>
                 <div class="card-manager">
                     <div class="row">
                         <div class="col-auto my-auto">
                             <div class="card-manager__image">
-                                <img :src="activeObject['manager']['photo']" class="img-fluid" />
+                                <img :src="activeObject.manager.photo" class="img-fluid" alt="Manager" />
                             </div>
                         </div>
                         <div class="col my-auto">
-                            <div class="card-data-block__title">
-                                {{ activeObject['manager']['dolg'] }}
-                            </div>
-                            <div class="card-data-block__text mb-2">
-                                {{ activeObject['manager']['name'] }}
-                            </div>
+                            <div class="card-data-block__title">{{ activeObject.manager.dolg }}</div>
+                            <div class="card-data-block__text mb-2">{{ activeObject.manager.name }}</div>
                             <div v-if="activeObject.manager.phone">
-                                <a
-                                    :href="`tel:${activeObject.manager.phone.replace(/\s/g, '')}`"
-                                    class="card-data-block__text"
-                                >
+                                <a :href="`tel:${activeObject.manager.phone.replace(/\s/g, '')}`"
+                                    class="card-data-block__text">
                                     <i class="fa fa-phone" aria-hidden="true"></i>
-                                    {{ activeObject['manager']['phone'] }}
+                                    {{ activeObject.manager.phone }}
                                 </a>
                             </div>
-                            <a :href="`mailto:${activeObject['manager']['email']}`" class="card-data-block__text">
-                                <i class="fa fa-envelope" aria-hidden="true"></i>{{ activeObject['manager']['email'] }}
+                            <a :href="`mailto:${activeObject.manager.email}`" class="card-data-block__text">
+                                <i class="fa fa-envelope" aria-hidden="true"></i> {{ activeObject.manager.email }}
                             </a>
                         </div>
                     </div>
                 </div>
-                <!-- <div class="card-data-block__text">
-                            {{ activeObject['contact'] }}
-                        </div>
-                        <div class="card-data-block__phone">
-                            {{ activeObject['phone'] }}
-                        </div> -->
             </div>
 
-            <div class="card-data-block" v-if="activeObject['privileges']">
+            <div class="card-data-block" v-if="activeObject.privileges">
                 <div class="card-data-block__title">Льготы и преференции</div>
-                <div class="card-data-block__text">
-                    {{ activeObject['privileges'] }}
-                </div>
+                <div class="card-data-block__text">{{ activeObject.privileges }}</div>
             </div>
 
-            <div class="card-data-block">
+            <div class="card-data-block" v-if="activeObject.dopInfo">
                 <div class="card-data-block__title">Дополнительная информация</div>
-                <div class="card-data-block__text" v-html="activeObject['dopInfo']"></div>
+                <div class="card-data-block__text" v-html="activeObject.dopInfo"></div>
             </div>
 
             <div @click="fullInfoModal = true" class="object-card__btn">
-                <span> Показать полную информацию </span>
+                <span>Показать полную информацию</span>
             </div>
         </div>
     </div>
@@ -191,124 +158,103 @@
             </template>
             <template #default>
                 <div id="print-content" v-if="activeObject">
-                    <table border="1" style="text-align: left; border-collapse: collapse" class="table table-bordered">
+                    <table class="table table-bordered">
                         <tbody>
-                            <tr v-if="activeObject['category']['name']">
+                            <tr v-if="activeObject.category?.name">
                                 <th>Категория</th>
-                                <td>{{ activeObject['category']['name'] }}</td>
+                                <td>{{ activeObject.category.name }}</td>
                             </tr>
-                            <tr v-if="activeObject['typeObject']">
+                            <tr v-if="activeObject.typeObject">
                                 <th>Тип объекта</th>
-                                <td>{{ activeObject['typeObject'] }}</td>
+                                <td>{{ activeObject.typeObject }}</td>
                             </tr>
-                            <tr v-if="activeObject['title']">
+                            <tr v-if="activeObject.title">
                                 <th>Название</th>
-                                <td>{{ activeObject['title'] }}</td>
+                                <td>{{ activeObject.title }}</td>
                             </tr>
-                            <tr v-if="activeObject['landCategory']">
+                            <tr v-if="activeObject.landCategory">
                                 <th>Категория земель</th>
-                                <td>{{ getLangCategory(activeObject['landCategory']) }}</td>
+                                <td>{{ getLangCategory(activeObject.landCategory) }}</td>
                             </tr>
-                            <tr v-if="activeObject['landTenure']">
+                            <tr v-if="activeObject.landTenure">
                                 <th>Вид права владения землей</th>
-                                <td>{{ activeObject['landTenure'] }}</td>
+                                <td>{{ activeObject.landTenure }}</td>
                             </tr>
-                            <tr v-if="activeObject['municipalArea']">
+                            <tr v-if="activeObject.municipalArea">
                                 <th>Муниципальное образование</th>
-                                <td>{{ getMunicipalArea(activeObject['municipalArea']) }}</td>
+                                <td>{{ getMunicipalArea(activeObject.municipalArea) }}</td>
                             </tr>
-                            <tr v-if="activeObject['owner']">
+                            <tr v-if="activeObject.owner">
                                 <th>Собственник</th>
-                                <td>{{ activeObject['owner'] }}</td>
+                                <td>{{ activeObject.owner }}</td>
                             </tr>
-                            <tr v-if="activeObject['typeOfOwnership']['title']">
+                            <tr v-if="activeObject.typeOfOwnership?.title">
                                 <th>Форма собственности</th>
-                                <td>{{ activeObject['typeOfOwnership']['title'] }}</td>
+                                <td>{{ activeObject.typeOfOwnership.title }}</td>
                             </tr>
-                            <tr v-if="activeObject['specialPurpose']">
-                                <th>
-                                    Целевое (приоритетное) назначение земельного участка, имеющиеся ограничения
-                                    использования
-                                </th>
-                                <td>{{ activeObject['specialPurpose'] }}</td>
+                            <tr v-if="activeObject.specialPurpose">
+                                <th>Целевое (приоритетное) назначение земельного участка, имеющиеся ограничения использования</th>
+                                <td>{{ activeObject.specialPurpose }}</td>
                             </tr>
-                            <tr v-if="activeObject['area']">
+                            <tr v-if="activeObject.area">
                                 <th>Общая площадь(га)</th>
-                                <td>{{ activeObject['area'] }}</td>
+                                <td>{{ activeObject.area }}</td>
                             </tr>
-                            <tr v-if="activeObject['free_area']">
+                            <tr v-if="activeObject.free_area">
                                 <th>Свободная площадь(га)</th>
-                                <td>{{ activeObject['free_area'] }}</td>
+                                <td>{{ activeObject.free_area }}</td>
                             </tr>
-                            <tr v-if="activeObject['cadastralNumber']">
+                            <tr v-if="activeObject.cadastralNumber">
                                 <th>Кадастровый номер земельного участка</th>
-                                <td>{{ activeObject['cadastralNumber'] }}</td>
+                                <td>{{ activeObject.cadastralNumber }}</td>
                             </tr>
-                            <tr v-if="activeObject['expandability']">
+                            <tr v-if="activeObject.expandability !== undefined">
                                 <th>Возможность расширения</th>
-                                <td v-if="activeObject['expandability']">Да</td>
-                                <td v-else>Нет</td>
+                                <td>{{ activeObject.expandability ? 'Да' : 'Нет' }}</td>
                             </tr>
                             <tr>
                                 <th>Газоснабжение</th>
-                                <td v-if="activeObject['gasSupply']">
-                                    {{ activeObject['gasSupply'] }}
-                                </td>
-                                <td v-else>-</td>
+                                <td>{{ activeObject.gasSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Теплоснабжение</th>
-                                <td v-if="activeObject['heatSupply']">
-                                    {{ activeObject['heatSupply'] }}
-                                </td>
-                                <td v-else>-</td>
+                                <td>{{ activeObject.heatSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Электроснабжение</th>
-                                <td v-if="activeObject['powerSupply']">
-                                    {{ activeObject['powerSupply'] }}
-                                </td>
-                                <td v-else>-</td>
+                                <td>{{ activeObject.powerSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Водоснабжение</th>
-                                <td v-if="activeObject['waterSupply']">
-                                    {{ activeObject['waterSupply'] }}
-                                </td>
-                                <td v-else>-</td>
+                                <td>{{ activeObject.waterSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Водоотведение</th>
-                                <td v-if="activeObject['waterDisposal']">
-                                    {{ activeObject['waterDisposal'] }}
-                                </td>
-                                <td v-else>-</td>
+                                <td>{{ activeObject.waterDisposal || '-' }}</td>
                             </tr>
-                            <tr v-if="activeObject['transportInfrastructureAvailability']">
+                            <tr v-if="activeObject.transportInfrastructureAvailability">
                                 <th>Наличие транспортной инфраструктуры</th>
-                                <td>{{ activeObject['transportInfrastructureAvailability'] }}</td>
+                                <td>{{ activeObject.transportInfrastructureAvailability }}</td>
                             </tr>
-
-                            <tr v-if="activeObject['privileges']">
+                            <tr v-if="activeObject.privileges">
                                 <th>Льготы и преференции</th>
-                                <td>{{ activeObject['privileges'] }}</td>
+                                <td>{{ activeObject.privileges }}</td>
                             </tr>
-
-                            <tr v-if="activeObject['provisionTerms']">
+                            <tr v-if="activeObject.provisionTerms">
                                 <th>Условия предоставления инвестору</th>
-                                <td>{{ activeObject['provisionTerms'] }}</td>
+                                <td>{{ activeObject.provisionTerms }}</td>
                             </tr>
-                            <tr v-if="activeObject['dopInfo']">
+                            <tr v-if="activeObject.dopInfo">
                                 <th>Дополнительная информация</th>
-                                <td v-html="activeObject['dopInfo']"></td>
+                                <td v-html="activeObject.dopInfo"></td>
                             </tr>
-                            <tr v-if="activeObject['contact']">
+                            <tr v-if="activeObject.contact">
                                 <th>Контактное лицо</th>
-                                <td>{{ activeObject['contact'] }}</td>
+                                <td>{{ activeObject.contact }}</td>
                             </tr>
-                            <tr v-if="activeObject['phone']">
+                            <tr v-if="activeObject.phone">
                                 <th>Телефон</th>
-                                <td>{{ activeObject['phone'] }}</td>
+                                <td>{{ activeObject.phone }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -318,77 +264,76 @@
     </teleport>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex'
-import AppModal from './ui/AppModal'
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useStore } from 'vuex'
 import { Fancybox } from '@fancyapps/ui/src/Fancybox/Fancybox.js'
+import AppModal from './ui/AppModal.vue'
 
-export default {
-    emits: [],
-    props: {},
+const store = useStore()
 
-    components: { AppModal },
+const fullInfoModal = ref(false)
+const fullscreenObject = ref(false)
 
-    data() {
-        return {
-            fullInfoModal: false,
-            fullscreenObject: false,
-        }
-    },
 
-    async mounted() {
-        await this.fetchLandCategories()
+const activeObject = computed(() => store.getters.activeObject)
+const districts = computed(() => store.getters.districts)
+const allLandCategories = computed(() => store.getters.allLandCategories)
 
-        Fancybox.bind('[data-fancybox]', {})
-    },
-
-    computed: {
-        ...mapGetters(['districts', 'allLandCategories', 'activeObject']),
-    },
-
-    methods: {
-        ...mapActions(['fetchLandCategories', 'setActiveObject']),
-
-        close() {
-            this.setActiveObject(null)
-            this.fullscreenObject = false
-        },
-
-        getLangCategory(id) {
-            let lcat = this.allLandCategories.find((item) => {
-                return item.id == id
-            })
-
-            if (lcat) {
-                return lcat.title
-            } else {
-                return '-'
-            }
-        },
-
-        getMunicipalArea(id) {
-            let ma = this.districts.find((item) => {
-                return item.id == +id
-            })
-
-            if (ma) {
-                return ma.name
-            } else {
-                return '-'
-            }
-        },
-
-        callPrint() {
-            let prtContent = document.getElementById('print-content')
-            let WinPrint = window.open('', '', 'left=50,top=50,width=800,height=640,toolbar=0,scrollbars=1,status=0')
-            WinPrint.document.write(prtContent.innerHTML)
-            WinPrint.document.close()
-            WinPrint.focus()
-            WinPrint.print()
-            WinPrint.close()
-        },
-    },
+const close = () => {
+    store.dispatch('setActiveObject', null)
+    fullscreenObject.value = false
 }
+
+const getLangCategory = (id) => {
+    const category = allLandCategories.value.find((item) => item.id == id)
+    return category ? category.title : '-'
+}
+
+const getMunicipalArea = (id) => {
+    const area = districts.value.find((item) => item.id == +id)
+    return area ? area.name : '-'
+}
+
+// Логика печати
+const callPrint = () => {
+    const prtContent = document.getElementById('print-content')
+    if (!prtContent) return
+
+    const WinPrint = window.open('', '', 'left=50,top=50,width=800,height=640,toolbar=0,scrollbars=1,status=0')
+
+    WinPrint.document.write(`
+        <html>
+            <head>
+                <title>Печать объекта</title>
+                <style>
+                    body { font-family: sans-serif; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
+                    th { background-color: #f0f0f0; }
+                </style>
+            </head>
+            <body>
+                ${prtContent.innerHTML}
+            </body>
+        </html>
+    `)
+
+    WinPrint.document.close()
+    WinPrint.focus()
+    setTimeout(() => {
+        WinPrint.print()
+        WinPrint.close()
+    }, 500)
+}
+
+onMounted(async () => {
+    if (allLandCategories.value.length === 0) {
+        await store.dispatch('fetchLandCategories')
+    }
+
+    Fancybox.bind('[data-fancybox]', {})
+})
 </script>
 
 <style lang="scss" scoped>
@@ -441,10 +386,26 @@ export default {
     padding: 30px 20px 20px;
     overflow-y: auto;
     z-index: 9;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 3px;
+    }
+
     @media (max-width: 991.98px) {
         position: fixed;
         width: 100vw;
         left: -100%;
+        top: 0;
+        transition: left 0.3s ease-in-out;
 
         &.fullscreen {
             left: 0;
@@ -462,6 +423,7 @@ export default {
         text-align: center;
         padding: 20px 30px;
         position: relative;
+        margin-top: 20px;
 
         span {
             position: relative;
@@ -479,11 +441,6 @@ export default {
             background: linear-gradient(95.48deg, #f7ce38 -7.1%, #f7ce38 97.71%);
             opacity: 0;
             transition: opacity 0.8s;
-        }
-
-        &:hover {
-            color: #fff;
-            text-decoration: none;
         }
 
         &:hover::before {
@@ -509,23 +466,21 @@ export default {
         cursor: pointer;
         z-index: 8;
         border-radius: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         @media (max-width: 991.98px) {
-            display: none;
-            position: fixed;
+            display: none; 
 
             .fullscreen & {
-                display: block;
+                display: flex;
             }
         }
 
-        &:hover {
-            opacity: 1;
-        }
-
         img {
-            width: 24px;
-            height: 24px;
+            width: 14px;
+            height: 14px;
         }
     }
 
@@ -553,7 +508,6 @@ export default {
     border-radius: 2px;
     font-weight: 600;
     font-size: 14px;
-    line-height: 24px;
     padding: 2px 8px;
 }
 
@@ -565,8 +519,9 @@ export default {
 
     &__main {
         margin-bottom: 2px;
+
         img {
-            height: 260px;
+            height: 200px;
         }
     }
 
@@ -575,36 +530,34 @@ export default {
             height: 60px;
             margin-bottom: 2px;
         }
+
         .row {
             margin-right: -1px;
             margin-left: -1px;
-            > .col,
-            > [class*='col-'] {
-                padding-right: 1px;
-                padding-left: 1px;
+
+            >[class*='col-'] {
+                padding: 1px;
             }
         }
     }
 }
 
 .card-data-block {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     font-size: 16px;
 
     &__title {
         font-weight: 600;
         font-size: 14px;
-        line-height: 18px;
-        margin-bottom: 8px;
-        opacity: 0.8;
+        margin-bottom: 5px;
+        opacity: 0.7;
     }
 
     &__text {
-        font-size: 16px;
-        line-height: 18px;
+        font-size: 15px;
         color: #ffffff;
         display: block;
-        margin-bottom: 8px;
+        margin-bottom: 5px;
     }
 }
 
@@ -618,29 +571,18 @@ export default {
     display: inline-block;
     margin-right: 10px;
 
-    &:last-child {
-        margin-right: 0;
-    }
-
-    &::before {
-        content: '';
-        position: absolute;
-        background-repeat: no-repeat;
-        border-radius: 20px;
-        right: -3px;
-        top: 0px;
-        width: 18px;
-        height: 18px;
-        background-size: cover;
-        background-position: center;
-        background-image: url(@/assets/img/card/none.png);
-    }
-
     &.has {
         background: rgba(255, 255, 255, 0.1);
         border: none;
+
         &::before {
-            background-image: url(@/assets/img/card/has.png);
+            content: '';
+            position: absolute;
+            right: -3px;
+            top: 0px;
+            width: 18px;
+            height: 18px;
+            background: url(@/assets/img/card/has.png) center/cover no-repeat;
         }
     }
 
@@ -652,30 +594,23 @@ export default {
 
 .card-manager {
     &__image {
-        width: 100px;
-    }
-
-    .row {
-        margin-right: -5px;
-        margin-left: -5px;
-        > .col,
-        > [class*='col-'] {
-            padding-right: 5px;
-            padding-left: 5px;
-        }
-    }
-
-    i {
+        width: 80px;
+        border-radius: 50%;
+        overflow: hidden;
         margin-right: 10px;
     }
 
     a {
         color: inherit;
         text-decoration: none;
+
         &:hover {
-            color: inherit;
-            text-decoration: none;
+            text-decoration: underline;
         }
+    }
+
+    i {
+        margin-right: 5px;
     }
 }
 </style>
