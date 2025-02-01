@@ -1,60 +1,52 @@
 <template>
-    <div class="nav-desktop" v-show="!showFilterPanel">
+    <div class="nav-desktop" v-show="!store.getters.showFilterPanel">
         <div class="nav-desktop__logo">
             <img src="./../assets/img/logo-mini.png" class="img-fluid" alt="" />
         </div>
-        <div class="nav-desktop__item" @click="setShowFilterPanel(true)">
+        <div class="nav-desktop__item" @click="store.dispatch('setShowFilterPanel', true)">
             <i class="fa fa-search" aria-hidden="true"></i>
         </div>
-        <div class="nav-desktop__item" @click="setShowFilterPanel(true)">
+        <div class="nav-desktop__item" @click="store.dispatch('setShowFilterPanel', true)">
             <i class="fa fa-sliders" aria-hidden="true"></i>
         </div>
-        <div class="nav-desktop__toggler" @click="setShowFilterPanel(true)">
+        <div class="nav-desktop__toggler" @click="store.dispatch('setShowFilterPanel', true)">
             <i class="fa fa-chevron-right" aria-hidden="true"></i>
         </div>
     </div>
 
-    <div class="nav-mobile" v-show="!showFilterPanel && !showSearchPanel">
+    <div class="nav-mobile" v-show="!store.getters.showFilterPanel && !store.getters.showSearchPanel">
         <nav class="navbar bg-light navbar-expand">
             <div class="navbar-nav w-100 nav-justified">
                 <li class="nav-item">
-                    <a class="nav-link" @click.prevent="setShowFilterPanel(true)">
+                    <a class="nav-link" @click.prevent="store.dispatch('setShowFilterPanel', true)">
                         <i class="fa fa-sliders" aria-hidden="true"></i>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" @click.prevent="setShowSearchPanel(true)">
+                    <a class="nav-link" @click.prevent="store.dispatch('setShowSearchPanel', true)">
                         <i class="fa fa-search" aria-hidden="true"></i>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" @click.prevent="$emit('shareModal')" target="_self"
-                        ><i class="fa fa-share" aria-hidden="true"></i
-                    ></a>
+                    <a class="nav-link" @click.prevent="emit('shareModal')" target="_self">
+                        <i class="fa fa-share" aria-hidden="true"></i>
+                    </a>
                 </li>
                 <li class="nav-item dropdown dropup">
-                    <a
-                        class="nav-link dropdown-toggle"
-                        href="#"
-                        role="button"
-                        data-bs-toggle="dropdown"
-                        aria-expanded="false"
-                    >
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         <i class="fa fa-list" aria-hidden="true"></i>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="https://invest-buryatia.ru/" target="_blank"
-                                >Инвестиционный портал
-                            </a>
+                            <a class="dropdown-item" href="https://invest-buryatia.ru/" target="_blank">Инвестиционный
+                                портал</a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#" @click.prevent="$emit('mapToBuryatia')"
-                                >К республике Бурятия
-                            </a>
+                            <a class="dropdown-item" href="#" @click.prevent="emit('mapToBuryatia')">К республике
+                                Бурятия</a>
                         </li>
                         <li>
-                            <a class="dropdown-item" href="#" @click.prevent="$emit('selectMapModal')">Выбрать карту</a>
+                            <a class="dropdown-item" href="#" @click.prevent="emit('selectMapModal')">Выбрать карту</a>
                         </li>
                     </ul>
                 </li>
@@ -63,19 +55,11 @@
     </div>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex'
+<script setup>
+import { useStore } from 'vuex'
 
-export default {
-    emits: ['mapToBuryatia', 'shareModal', 'selectMapModal'],
-    computed: {
-        ...mapGetters(['showFilterPanel', 'showSearchPanel']),
-    },
-
-    methods: {
-        ...mapActions(['setShowFilterPanel', 'setShowSearchPanel']),
-    },
-}
+const emit = defineEmits(['mapToBuryatia', 'shareModal', 'selectMapModal'])
+const store = useStore()
 </script>
 
 <style lang="scss" scoped>
@@ -149,6 +133,7 @@ export default {
 
     li {
         border-bottom: 1px solid #eff7fd;
+
         &:last-child {
             border-bottom: none;
         }

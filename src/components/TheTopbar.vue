@@ -4,35 +4,25 @@
             <a href="https://invest-buryatia.ru/" class="top-panel__btn show-site" target="_blank"></a>
         </div>
         <div class="top-panel-item" title="К Республике Бурятия">
-            <button class="top-panel__btn show-bur" @click="$emit('mapToBuryatia')"></button>
+            <button class="top-panel__btn show-bur" @click="emit('mapToBuryatia')"></button>
         </div>
         <div class="top-panel-item" title="Поделиться">
-            <button class="top-panel__btn show-share" @click="$emit('shareModal')"></button>
+            <button class="top-panel__btn show-share" @click="emit('shareModal')"></button>
         </div>
         <div class="top-panel-item" title="Выбрать карту">
-            <button
-                class="top-panel__btn show-layers"
-                data-bs-toggle="collapse"
-                data-bs-target="#top-panel-collapse"
-            ></button>
+            <button class="top-panel__btn show-layers" data-bs-toggle="collapse"
+                data-bs-target="#top-panel-collapse"></button>
 
             <div class="top-panel-item__content">
                 <div class="collapse" id="top-panel-collapse">
                     <ul class="panel-list">
-                        <li
-                            class="panel-list-item"
-                            @click="setActiveLayer(item)"
-                            v-for="item in layers"
-                            :key="item"
-                            :class="[activeLayer.name == item.name ? 'active' : '']"
-                        >
+                        <li class="panel-list-item" @click="store.dispatch('setActiveLayer', item)"
+                            v-for="item in store.getters.layers" :key="item.name"
+                            :class="{ active: store.getters.activeLayer.name === item.name }">
                             {{ item.name }}
                         </li>
-                        <li
-                            class="panel-list-item"
-                            :class="{ active: showDistricts }"
-                            @click="setShowDistricts(!showDistricts)"
-                        >
+                        <li class="panel-list-item" :class="{ active: store.getters.showDistricts }"
+                            @click="store.dispatch('setShowDistricts', !store.getters.showDistricts)">
                             Районы
                         </li>
                     </ul>
@@ -42,19 +32,11 @@
     </div>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex'
+<script setup>
+import { useStore } from 'vuex'
 
-export default {
-    emits: ['mapToBuryatia', 'shareModal'],
-
-    computed: {
-        ...mapGetters(['layers', 'activeLayer', 'showDistricts']),
-    },
-    methods: {
-        ...mapActions(['setActiveLayer', 'setShowDistricts']),
-    },
-}
+const emit = defineEmits(['mapToBuryatia', 'shareModal'])
+const store = useStore()
 </script>
 
 <style lang="scss" scoped>
@@ -83,10 +65,7 @@ export default {
         &::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            inset: 0;
             border-radius: 100%;
             background-position: center;
             background-repeat: no-repeat;
@@ -102,6 +81,7 @@ export default {
             background-image: url(@/assets/img/icons/focus-line.png);
             background-size: 24px;
         }
+
         &.show-share::after {
             background-image: url(@/assets/img/icons/share-line.png);
             background-size: 24px;
@@ -117,6 +97,7 @@ export default {
 .top-panel-item {
     position: relative;
     margin-right: 10px;
+
     &:last-child {
         margin-right: 0;
     }
@@ -124,7 +105,7 @@ export default {
     &__content {
         position: absolute;
         top: calc(100% + 15px);
-        right: 0px;
+        right: 0;
     }
 }
 
