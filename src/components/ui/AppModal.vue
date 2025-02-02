@@ -1,6 +1,5 @@
 <template>
-    <!-- todo: Почему то при передаче open = '' возвращает true -->
-    <div :id="id" class="modal custom-modal">
+    <div :id="modalId" class="modal custom-modal" tabindex="-1">
         <div class="modal-dialog" :class="classObject">
             <div class="modal-content">
                 <div class="modal-header">
@@ -16,79 +15,55 @@
         </div>
     </div>
 </template>
-<script>
+
+<script setup>
+import { computed, onMounted, watch } from 'vue'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-export default {
-    emits: ['update:open'],
-    props: {
-        open: Boolean,
-        scrollable: Boolean,
-        centered: Boolean,
-        size: {
-            validator(value) {
-                return ['sm', 'lg', 'xl'].includes(value)
-            },
-        },
-    },
-    data() {
-        return {
-            id: 'modal-' + Date.now(),
-        }
-    },
+const props = defineProps({
+    open: Boolean,
+    scrollable: Boolean,
+    centered: Boolean,
+    size: String // 'sm', 'lg', 'xl'
+})
 
-    computed: {
-        classObject() {
-            const obj = {}
+const emit = defineEmits(['update:open'])
 
-            if (this.centered) {
-                obj['modal-dialog-centered'] = true
-            }
 
-            if (this.scrollable) {
-                obj['modal-dialog-scrollable'] = true
-            }
+const modalId = `modal-${Math.random().toString(36).substr(2, 9)}`
+let modalInstance = null
 
-            if (this.size) {
-                obj['modal-' + this.size] = true
-            }
+const classObject = computed(() => ({
+    'modal-dialog-centered': props.centered,
+    'modal-dialog-scrollable': props.scrollable,
+    [`modal-${props.size}`]: !!props.size
+}))
 
-            return obj
-        },
-    },
-
-    methods: {
-        showModal() {
-            const myModal = new bootstrap.Modal(document.getElementById(this.id))
-            myModal.show()
-        },
-
-        closeModal() {
-            const truck_modal = document.querySelector(`#${this.id}`)
-            const modal = bootstrap.Modal.getInstance(truck_modal)
-
-            if (modal) {
-                modal.hide()
-            }
-        },
-    },
-
-    mounted() {
-        var myModalEl = document.getElementById(this.id)
-        myModalEl.addEventListener('hidden.bs.modal', () => {
-            this.$emit('update:open', false)
-        })
-    },
-    watch: {
-        open(value) {
-            if (value === true) {
-                this.showModal()
-            } else {
-                this.closeModal()
-            }
-        },
-    },
+const showModal = () => {
+    if (!modalInstance) {
+        const el = document.getElementById(modalId)
+        if (el) modalInstance = new bootstrap.Modal(el)
+    }
+    modalInstance?.show()
 }
+
+const closeModal = () => {
+    modalInstance?.hide()
+}
+
+onMounted(() => {
+    const el = document.getElementById(modalId)
+    if (el) {
+        el.addEventListener('hidden.bs.modal', () => {
+            emit('update:open', false)
+        })
+    }
+})
+
+watch(() => props.open, (val) => {
+    if (val) showModal()
+    else closeModal()
+})
 </script>
 
 <style lang="scss" scoped>

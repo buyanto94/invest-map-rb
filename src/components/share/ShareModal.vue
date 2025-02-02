@@ -9,49 +9,73 @@
     </div>
 </template>
 
-<script>
-import { mapGetters, mapActions } from 'vuex'
+<script setup>
+import { computed } from 'vue'
+import { useStore } from 'vuex'
 
-export default {
-    emits: ['copied'],
-    props: {
-        center: [Array, Object],
-        zoom: Number,
-    },
-    computed: {
-        ...mapGetters(['activeObject']),
-        shareLink() {
-            if (this.activeObject) {
-                return `${window.location.host}${location.pathname}?object=${this.activeObject.id}`
-            }
+const props = defineProps({
+    center: [Array, Object],
+    zoom: Number,
+})
 
-            if (this.center[0] && this.center[1]) {
-                return `${window.location.host}${location.pathname}?zoom=${this.zoom}&lat=${this.center[0]}&lng=${this.center[1]}`
-            } else {
-                return `${window.location.host}${location.pathname}?zoom=${this.zoom}&lat=${this.center.lat}&lng=${this.center.lng}`
-            }
-        },
-    },
+const emit = defineEmits(['copied'])
+const store = useStore()
 
-    methods: {
-        ...mapActions(['setMessage']),
-        copyShareLink() {
-            try {
-                navigator.clipboard.writeText(this.shareLink)
+const shareLink = computed(() => {
+    const activeObject = store.getters.activeObject
+    if (activeObject) {
+        return `${window.location.host}${location.pathname}?object=${activeObject.id}`
+    }
 
-                this.setMessage({
-                    text: 'Ссылка скопирована.',
-                    type: 'success',
-                })
+    // Проверка формата координат (массив или объект)
+    const lat = Array.isArray(props.center) ? props.center[0] : props.center.lat
+    const lng = Array.isArray(props.center) ? props.center[1] : props.center.lng
 
-                this.$emit('copied')
-            } catch (e) {
-                this.setMessage({
-                    text: 'Ошибка ' + e.name + ':' + e.message,
-                    type: 'danger',
-                })
-            }
-        },
-    },
+    return `${window.location.host}${location.pathname}?zoom=${props.zoom}&lat=${lat}&lng=${lng}`
+})
+
+const copyShareLink = async () => {
+    try {
+        await navigator.clipboard.writeText(shareLink.value)
+
+        store.dispatch('setMessage', {
+            text: 'Ссылка скопирована.',
+            type: 'success',
+        })
+
+        emit('copied')
+    } catch (e) {
+        store.dispatch('setMessage', {
+            text: 'Ошибка копирования: ' + e.message,
+            type: 'danger',
+        })
+    }
 }
 </script>
+
+<style lang="scss" scoped>
+.modal-share {
+    &__field {
+        padding: 12px 10px;
+        background: #eff7fd;
+        margin-bottom: 20px;
+        word-break: break-all;
+    }
+
+    &__btn {
+        padding: 10px 20px;
+        border-radius: initial;
+        background: #71bbe9;
+        font-weight: 600;
+        color: #fff;
+        justify-content: space-between;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+}
+</style>
