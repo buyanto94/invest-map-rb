@@ -4,84 +4,58 @@
     </div>
 </template>
 
-<script>
+<script setup>
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
-import { inject, nextTick, onBeforeUnmount, onMounted, provide, ref } from 'vue'
+import { inject, nextTick, onBeforeUnmount, onMounted, provide, ref, useAttrs } from 'vue'
 import { propsBinder, remapEvents } from '@vue-leaflet/vue-leaflet/src/utils'
-import { render, setup as layerSetup } from '@vue-leaflet/vue-leaflet/src/functions/layer'
+import { setup as layerSetup } from '@vue-leaflet/vue-leaflet/src/functions/layer'
 
-const props = {
+const props = defineProps({
     options: {
         type: Object,
-        default() {
-            return {}
-        },
+        default: () => ({}),
     },
-}
+})
 
-export default {
-    name: 'MarkerCluster',
+const leafletRef = ref({})
+const ready = ref(false)
+const attrs = useAttrs()
 
-    props,
+const addLayerToMainMap = inject('addLayer')
+const removeLayerFromMainMap = inject('removeLayer')
 
-    // emits: ['ready'],
+provide('canSetParentHtml', () => !!leafletRef.value.getElement())
+provide('setParentHtml', (html) => (leafletRef.value.getElement().innerHTML = html))
+provide('addLayer', (layer) => leafletRef.value.addLayer(layer.leafletObject))
+provide('removeLayer', (layer) => leafletRef.value.removeLayer(layer.leafletObject))
 
-    setup(props, context) {
-        const leafletRef = ref({})
-        const ready = ref(false)
+const { methods } = layerSetup(props, leafletRef, { attrs })
 
-        const addLayerToMainMap = inject('addLayer')
-        const removeLayerFromMainMap = inject('removeLayer')
+onMounted(async () => {
+    const { DomEvent } = await import('leaflet/dist/leaflet-src.esm')
+    const { MarkerClusterGroup } = await import('leaflet.markercluster/dist/leaflet.markercluster-src.js')
 
-        provide('canSetParentHtml', () => !!leafletRef.value.getElement())
-        provide('setParentHtml', (html) => (leafletRef.value.getElement().innerHTML = html))
-        // provide('setIcon', (newIcon) => leafletRef.value.setIcon && leafletRef.value.setIcon(newIcon))
-        provide('addLayer', (layer) => {
-            // replace the provided addLayer function for child components of MarkerCluster so they add to the cluster rather than the map
-            leafletRef.value.addLayer(layer.leafletObject)
-        })
-        provide('removeLayer', (layer) => {
-            leafletRef.value.removeLayer(layer.leafletObject)
-        })
+    leafletRef.value = new MarkerClusterGroup(props.options)
 
-        // const {options, methods} = markerSetup(props, leafletRef, context)
+    const listeners = remapEvents(attrs)
+    DomEvent.on(leafletRef.value, listeners)
 
-        const { methods } = layerSetup(props, leafletRef, context)
+    propsBinder(methods, leafletRef.value, props)
 
-        onMounted(async () => {
-            // const { DomEvent, marker } = await import('leaflet/dist/leaflet-src.esm')
-            const { DomEvent } = await import('leaflet/dist/leaflet-src.esm')
+    addLayerToMainMap({
+        ...props,
+        ...methods,
+        leafletObject: leafletRef.value,
+    })
 
-            const { MarkerClusterGroup } = await import('leaflet.markercluster/dist/leaflet.markercluster-src.js')
-            leafletRef.value = new MarkerClusterGroup(props.options)
+    ready.value = true
+    nextTick(() => attrs.onReady?.(leafletRef.value))
+})
 
-            const listeners = remapEvents(context.attrs)
-            DomEvent.on(leafletRef.value, listeners)
-
-            propsBinder(methods, leafletRef.value, props)
-
-            addLayerToMainMap({
-                ...props,
-                ...methods,
-                leafletObject: leafletRef.value,
-            })
-
-            ready.value = true
-            nextTick(() => context.emit('ready', leafletRef.value))
-        })
-
-        onBeforeUnmount(
-            () =>
-                leafletRef.value &&
-                leafletRef.value._leaflet_id &&
-                removeLayerFromMainMap({ leafletObject: leafletRef.value })
-        )
-
-        return { ready, leafletObject: leafletRef }
-    },
-    render() {
-        return render(this.ready, this.$slots)
-    },
-}
+onBeforeUnmount(() => {
+    if (leafletRef.value && leafletRef.value._leaflet_id) {
+        removeLayerFromMainMap({ leafletObject: leafletRef.value })
+    }
+})
 </script>

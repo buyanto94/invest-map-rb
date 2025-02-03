@@ -1,101 +1,100 @@
 <template>
     <div id="map">
         <l-map
-            ref="map"
+            ref="mapRef"
             :zoom="zoom"
             :center="center"
             :noBlockingAnimations="true"
             :options="{ zoomControl: false }"
             @click="handleMapClick"
-            @update:zoom="zoomUpdated"
-            @update:center="centerUpdated"
+            @update:zoom="emit('update:zoom', $event)"
+            @update:center="emit('update:center', $event)"
             @ready="onLeafletReady"
         >
             <template v-if="leafletReady">
                 <l-tile-layer
+                    v-if="store.getters.activeLayer"
                     :max-zoom="18"
-                    v-if="activeLayer"
-                    :url="activeLayer.url"
-                    :subdomains="activeLayer.subdomains"
+                    :url="store.getters.activeLayer.url"
+                    :subdomains="store.getters.activeLayer.subdomains"
                 ></l-tile-layer>
+                
                 <l-control-zoom position="topright"></l-control-zoom>
 
                 <marker-cluster>
-                    <div v-if="true">
-                        <div v-for="item in markers" :key="item.id">
-                            <div v-if="Array.isArray(item.coords[0])">
-                                <l-polygon
-                                    :lat-lngs="poligonReqFormat(item['coords'])"
-                                    :fillOpacity="0.2"
-                                    :weight="3"
-                                    color="#29d321"
-                                    fillColor="#29d321"
-                                    :visible="item.id == activeObject?.id ? true : false"
-                                >
-                                    <l-popup>
-                                        {{ item['title'] }}
-                                    </l-popup>
-                                </l-polygon>
-                                <l-marker :lat-lng="polygonCenter(item['coords'])" @click="setActiveObject(item)">
-                                    <l-icon :icon-size="iconSize">
-                                        <img
-                                            :src="'https://invest-buryatia.ru' + item['category']['img']"
-                                            v-if="item['category']['img']"
-                                            :title="item['category']['type']"
-                                        />
-                                        <img
-                                            v-else
-                                            :src="
-                                                item['category']['type']
-                                                    ? iconsMarker[item['category']['type']]
-                                                    : iconsMarker['default']
-                                            "
-                                            :title="item['category']['type']"
-                                        />
-                                    </l-icon>
-                                </l-marker>
-                            </div>
-                            <div v-else>
-                                <l-marker
-                                    v-if="item['coords'].length == 2"
-                                    :lat-lng="item['coords']"
-                                    @click="setActiveObject(item)"
-                                >
-                                    <l-icon :icon-size="iconSize" class-name="icon-base">
-                                        <img
-                                            :src="'https://invest-buryatia.ru' + item['category']['img']"
-                                            v-if="item['category']['img']"
-                                            :title="item['category']['type']"
-                                        />
-                                        <img
-                                            v-else
-                                            :src="
-                                                item['category']['type']
-                                                    ? iconsMarker[item['category']['type']]
-                                                    : iconsMarker['default']
-                                            "
-                                            :title="item['category']['type']"
-                                        />
-                                    </l-icon>
-                                </l-marker>
-                            </div>
+                    <template v-for="item in markers" :key="item.id">
+                        <!-- Если это полигон (массив массивов) -->
+                        <div v-if="Array.isArray(item.coords[0])">
+                            <l-polygon
+                                :lat-lngs="poligonReqFormat(item.coords)"
+                                :fillOpacity="0.2"
+                                :weight="3"
+                                color="#29d321"
+                                fillColor="#29d321"
+                                :visible="item.id == store.getters.activeObject?.id"
+                            >
+                                <l-popup>{{ item.title }}</l-popup>
+                            </l-polygon>
+                            
+                            <l-marker 
+                                :lat-lng="polygonCenter(item.coords)" 
+                                @click="store.dispatch('setActiveObject', item)"
+                            >
+                                <l-icon :icon-size="iconSize">
+                                    <img 
+                                        :src="'https://invest-buryatia.ru' + item.category.img" 
+                                        v-if="item.category?.img" 
+                                        :title="item.category.type"
+                                        class="marker-icon"
+                                    />
+                                    <img 
+                                        v-else 
+                                        :src="item.category?.type ? store.getters.iconsMarker[item.category.type] : store.getters.iconsMarker['default']"
+                                        :title="item.category?.type"
+                                        class="marker-icon"
+                                    />
+                                </l-icon>
+                            </l-marker>
                         </div>
-                    </div>
+
+                        <!-- Если это точка -->
+                        <div v-else>
+                            <l-marker
+                                v-if="item.coords.length === 2"
+                                :lat-lng="item.coords"
+                                @click="store.dispatch('setActiveObject', item)"
+                            >
+                                <l-icon :icon-size="iconSize">
+                                    <img 
+                                        :src="'https://invest-buryatia.ru' + item.category.img" 
+                                        v-if="item.category?.img" 
+                                        :title="item.category.type"
+                                        class="marker-icon"
+                                    />
+                                    <img 
+                                        v-else 
+                                        :src="item.category?.type ? store.getters.iconsMarker[item.category.type] : store.getters.iconsMarker['default']"
+                                        :title="item.category?.type"
+                                        class="marker-icon"
+                                    />
+                                </l-icon>
+                            </l-marker>
+                        </div>
+                    </template>
                 </marker-cluster>
 
-                <div v-if="showDistricts">
+                <!-- Районы (GeoJSON) -->
+                <div v-if="store.getters.showDistricts">
                     <l-polygon
-                        v-for="item in districts"
+                        v-for="item in store.getters.districts"
                         :key="item.id"
-                        :lat-lngs="item['geometry']['coordinates']"
+                        :lat-lngs="item.geometry.coordinates"
                         :fillOpacity="0"
                         @click="focusedDistrict = item.id"
                         :weight="item.id == focusedDistrict ? 3 : 1"
                         :fill="true"
                     >
-                        <l-popup>
-                            {{ item.name }}
-                        </l-popup>
+                        <l-popup>{{ item.name }}</l-popup>
                     </l-polygon>
                 </div>
             </template>
@@ -103,84 +102,66 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, nextTick, onMounted } from 'vue'
+import { useStore } from 'vuex'
 import { polygonCenter } from '@/utils/polygon'
-
 import { LMap, LTileLayer, LControlZoom, LMarker, LIcon, LPolygon, LPopup } from '@vue-leaflet/vue-leaflet'
 import MarkerCluster from './MarkerCluster.vue'
-import { mapGetters, mapActions } from 'vuex'
 
-export default {
-    emits: ['update:zoom', 'update:center'],
-    props: {
-        zoom: Number,
-        center: [Array, Object],
-        markers: Array,
-    },
-    components: {
-        LMap,
-        LTileLayer,
-        LControlZoom,
-        LMarker,
-        LIcon,
-        LPolygon,
-        LPopup,
-        MarkerCluster,
-    },
+defineProps({
+    zoom: Number,
+    center: [Array, Object],
+    markers: Array,
+})
+const emit = defineEmits(['update:zoom', 'update:center'])
 
-    data() {
-        return {
-            leafletReady: false,
-            leafletObject: null,
-            iconSize: [30, 30],
-            focusedDistrict: null,
-        }
-    },
+const store = useStore()
+const mapRef = ref(null)
+const leafletReady = ref(false)
+const focusedDistrict = ref(null)
+const iconSize = [30, 30]
 
-    computed: {
-        ...mapGetters(['activeObject', 'activeLayer', 'showDistricts', 'districts', 'iconsMarker']),
-    },
-
-    methods: {
-        ...mapActions(['fetchDistricts', 'setActiveObject']),
-        zoomUpdated(zoom) {
-            this.$emit('update:zoom', zoom)
-        },
-
-        centerUpdated(center) {
-            this.$emit('update:center', center)
-        },
-
-        polygonCenter,
-
-        async onLeafletReady() {
-            await this.$nextTick()
-            this.leafletObject = this.$refs.map.leafletObject
-            this.leafletReady = true
-        },
-        handleMapClick() {
-            this.focusedDistrict = null
-        },
-    },
-
-    async mounted() {
-        await this.fetchDistricts()
-    },
-
-    watch: {
-        activeLayer() {
-            this.leafletReady = false
-            setTimeout(() => {
-                this.leafletReady = true
-            }, 0)
-        },
-    },
+const onLeafletReady = async () => {
+    await nextTick()
+    leafletReady.value = true
 }
+
+const handleMapClick = () => {
+    focusedDistrict.value = null
+}
+
+const poligonReqFormat = (polygon) => {
+    if (!polygon || !polygon[0]) return []
+    
+    const points = polygon[0][0] ? polygon[0][0] : polygon[0]
+
+    return points.map(element => {
+        if (element.latitude && element.longitude) {
+            return [element.latitude, element.longitude]
+        }
+        return [element[0], element[1]]
+    })
+}
+
+onMounted(async () => {
+    await store.dispatch('fetchDistricts')
+})
+
+watch(() => store.getters.activeLayer, () => {
+    leafletReady.value = false
+    setTimeout(() => {
+        leafletReady.value = true
+    }, 0)
+})
 </script>
 
 <style lang="scss" scoped>
 #map {
     width: 100%;
     height: 100vh;
+}
+.marker-icon {
+    max-width: 100% !important;
 }
 </style>
