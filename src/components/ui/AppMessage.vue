@@ -11,60 +11,46 @@
     </div>
 </template>
 
-<script>
+<script setup>
+import { computed, watch, ref } from 'vue'
+import { useStore } from 'vuex'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-import { mapGetters, mapActions } from 'vuex'
+const store = useStore()
+const timeoutID = ref(null)
 
-export default {
-    data() {
-        return {
-            timeoutID: '',
-        }
-    },
-    computed: {
-        ...mapGetters(['message']),
+const message = computed(() => store.getters.message)
 
-        typeMessageClass() {
-            if (this.message && this.message.type) {
-                return this.message.type
-            }
+const typeMessageClass = computed(() => {
+    return (message.value && message.value.type) ? message.value.type : 'primary'
+})
 
-            return 'primary'
-        },
-    },
+const showToast = () => {
+    const toastLive = document.getElementById('liveToast')
+    if (!toastLive) return
 
-    methods: {
-        ...mapActions(['clearMessage']),
+    const toast = bootstrap.Toast.getOrCreateInstance(toastLive)
+    toast.show()
 
-        showToast() {
-            const toastLive = document.getElementById('liveToast')
-            const toast = bootstrap.Toast.getOrCreateInstance(toastLive)
-            toast.show()
-
-            this.timeoutID = setTimeout(() => {
-                this.hideToast()
-            }, 5000)
-        },
-
-        hideToast() {
-            const toastLive = document.getElementById('liveToast')
-            const toast = bootstrap.Toast.getOrCreateInstance(toastLive)
-            toast.hide()
-
-            clearTimeout(this.timeoutID)
-            this.clearMessage()
-        },
-    },
-
-    watch: {
-        message(val) {
-            if (val) {
-                this.showToast()
-            }
-        },
-    },
+    timeoutID.value = setTimeout(() => {
+        hideToast()
+    }, 5000)
 }
+
+const hideToast = () => {
+    const toastLive = document.getElementById('liveToast')
+    if (!toastLive) return
+
+    const toast = bootstrap.Toast.getOrCreateInstance(toastLive)
+    toast.hide()
+
+    if (timeoutID.value) clearTimeout(timeoutID.value)
+    store.dispatch('clearMessage')
+}
+
+watch(message, (val) => {
+    if (val) showToast()
+})
 </script>
 
 <style lang="scss" scoped>

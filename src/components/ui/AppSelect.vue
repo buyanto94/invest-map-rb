@@ -1,74 +1,62 @@
 <template>
-    <div class="select-block">
-        <div
-            class="select-block__title"
-            :class="{ active: areOptionsVisible }"
-            @click="areOptionsVisible = !areOptionsVisible"
-        >
+    <div class="select-block" ref="selectBlockRef">
+        <div class="select-block__title" :class="{ active: areOptionsVisible }"
+            @click="areOptionsVisible = !areOptionsVisible">
             {{ selected }}
         </div>
         <div class="select-block__options" v-if="areOptionsVisible">
             <div class="select-block__option" @click="selectOption(nullOption)">
                 {{ nullOption.name }}
             </div>
-            <div
-                class="select-block__option"
-                v-for="option in options"
-                :key="option.value"
-                @click="selectOption(option)"
-            >
+            <div class="select-block__option" v-for="option in options" :key="option.value"
+                @click="selectOption(option)">
                 {{ option.name }}
             </div>
         </div>
     </div>
 </template>
 
-<script>
-export default {
-    props: {
-        options: {
-            type: Array,
-            default() {
-                return []
-            },
-        },
-        selected: {
-            type: String,
-            default: '',
-        },
-        nullOption: {
-            type: Object,
-            default() {
-                return {}
-            },
-        },
-    },
-    data() {
-        return {
-            areOptionsVisible: false,
-        }
-    },
-    methods: {
-        selectOption(option) {
-            this.$emit('select', option)
-            this.areOptionsVisible = false
-        },
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-        hideSelect(e) {
-            if (!e.target.classList.contains('select-block__title')) {
-                this.areOptionsVisible = false
-            }
-        },
+const props = defineProps({
+    options: {
+        type: Array,
+        default: () => [],
     },
-
-    mounted() {
-        document.addEventListener('click', this.hideSelect.bind(this), true)
+    selected: {
+        type: String,
+        default: '',
     },
+    nullOption: {
+        type: Object,
+        default: () => ({}),
+    },
+})
 
-    // beforeDestroy() {
-    //     document.removeEventListener('click', this.hideSelect)
-    // },
+const emit = defineEmits(['select'])
+
+const areOptionsVisible = ref(false)
+const selectBlockRef = ref(null)
+
+const selectOption = (option) => {
+    emit('select', option)
+    areOptionsVisible.value = false
 }
+
+const handleClickOutside = (e) => {
+    if (selectBlockRef.value && !selectBlockRef.value.contains(e.target)) {
+        areOptionsVisible.value = false
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside)
+})
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside)
+})
 </script>
 
 <style lang="scss" scoped>
@@ -88,19 +76,21 @@ export default {
         position: relative;
         white-space: nowrap;
         overflow: hidden;
+
         &::after {
             content: '';
             position: absolute;
             width: 34px;
             height: 100%;
-            top: 0px;
-            right: 0px;
+            top: 0;
+            right: 0;
             background-color: #f5f5fa;
             background-image: url('@/assets/img/icons/arrow-select.png');
             background-position: center;
             background-size: 24px;
             background-repeat: no-repeat;
             pointer-events: none;
+            transition: transform 0.2s;
         }
 
         &.active::after {
@@ -109,12 +99,11 @@ export default {
     }
 
     &__options {
-        border-left: 1px solid #292e91;
-        border-right: 1px solid #292e91;
-        border-bottom: 1px solid #292e91;
+        border: 1px solid #292e91;
+        border-top: none;
         cursor: pointer;
         position: absolute;
-        top: calc(100% - 1px);
+        top: 100%;
         width: 100%;
         max-height: 395px;
         overflow: auto;
@@ -128,11 +117,17 @@ export default {
         color: #292e91;
         padding: 15px 30px 15px 20px;
         border-bottom: 1px solid #e9e9f6;
+
         &:first-child {
             border-top: 1px solid #e9e9f6;
         }
+
         &:last-child {
             border-bottom: none;
+        }
+
+        &:hover {
+            background-color: #f0f0f5;
         }
     }
 }
