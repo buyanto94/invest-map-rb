@@ -19,7 +19,7 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 
-const props = defineProps({
+defineProps({
     options: {
         type: Array,
         default: () => [],
