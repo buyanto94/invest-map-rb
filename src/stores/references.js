@@ -40,9 +40,12 @@ export const useReferencesStore = defineStore('references', () => {
     }
 
     return {
-        landCategories,
+         landCategories,
         ownershipTypes,
         categoryGroups,
+        fetchLandCategories,
+        fetchOwnershipTypes,
+        fetchCategoryGroups,
         fetchAll
     }
 })
