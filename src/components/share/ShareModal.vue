@@ -11,7 +11,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useStore } from 'vuex'
+import { useMapStore } from '@/stores/map'
+import { useUIStore } from '@/stores/ui'
 
 const props = defineProps({
     center: [Array, Object],
@@ -19,15 +20,14 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['copied'])
-const store = useStore()
+const mapStore = useMapStore()
+const uiStore = useUIStore()
 
 const shareLink = computed(() => {
-    const activeObject = store.getters.activeObject
-    if (activeObject) {
-        return `${window.location.host}${location.pathname}?object=${activeObject.id}`
+    if (mapStore.activeObject) {
+        return `${window.location.host}${location.pathname}?object=${mapStore.activeObject.id}`
     }
 
-    // Проверка формата координат (массив или объект)
     const lat = Array.isArray(props.center) ? props.center[0] : props.center.lat
     const lng = Array.isArray(props.center) ? props.center[1] : props.center.lng
 
@@ -38,14 +38,14 @@ const copyShareLink = async () => {
     try {
         await navigator.clipboard.writeText(shareLink.value)
 
-        store.dispatch('setMessage', {
+        uiStore.setMessage({
             text: 'Ссылка скопирована.',
             type: 'success',
         })
 
         emit('copied')
     } catch (e) {
-        store.dispatch('setMessage', {
+        uiStore.setMessage({
             text: 'Ошибка копирования: ' + e.message,
             type: 'danger',
         })

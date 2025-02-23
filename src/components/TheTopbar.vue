@@ -16,13 +16,13 @@
             <div class="top-panel-item__content">
                 <div class="collapse" id="top-panel-collapse">
                     <ul class="panel-list">
-                        <li class="panel-list-item" @click="store.dispatch('setActiveLayer', item)"
-                            v-for="item in store.getters.layers" :key="item.name"
-                            :class="{ active: store.getters.activeLayer.name === item.name }">
+                        <li class="panel-list-item" @click="mapStore.setActiveLayer(item)"
+                            v-for="item in mapStore.layers" :key="item.name"
+                            :class="{ active: mapStore.activeLayer.name === item.name }">
                             {{ item.name }}
                         </li>
-                        <li class="panel-list-item" :class="{ active: store.getters.showDistricts }"
-                            @click="store.dispatch('setShowDistricts', !store.getters.showDistricts)">
+                        <li class="panel-list-item" :class="{ active: districtsStore.showDistricts }"
+                            @click="districtsStore.setShowDistricts(!districtsStore.showDistricts)">
                             Районы
                         </li>
                     </ul>
@@ -33,10 +33,12 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex'
+import { useMapStore } from '@/stores/map'
+import { useDistrictsStore } from '@/stores/districts'
 
 const emit = defineEmits(['mapToBuryatia', 'shareModal'])
-const store = useStore()
+const mapStore = useMapStore()
+const districtsStore = useDistrictsStore()
 </script>
 
 <style lang="scss" scoped>

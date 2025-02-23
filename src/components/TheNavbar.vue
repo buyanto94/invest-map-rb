@@ -1,29 +1,29 @@
 <template>
-    <div class="nav-desktop" v-show="!store.getters.showFilterPanel">
+    <div class="nav-desktop" v-show="!uiStore.showFilterPanel">
         <div class="nav-desktop__logo">
             <img src="./../assets/img/logo-mini.png" class="img-fluid" alt="" />
         </div>
-        <div class="nav-desktop__item" @click="store.dispatch('setShowFilterPanel', true)">
+        <div class="nav-desktop__item" @click="uiStore.setShowFilterPanel(true)">
             <i class="fa fa-search" aria-hidden="true"></i>
         </div>
-        <div class="nav-desktop__item" @click="store.dispatch('setShowFilterPanel', true)">
+        <div class="nav-desktop__item" @click="uiStore.setShowFilterPanel(true)">
             <i class="fa fa-sliders" aria-hidden="true"></i>
         </div>
-        <div class="nav-desktop__toggler" @click="store.dispatch('setShowFilterPanel', true)">
+        <div class="nav-desktop__toggler" @click="uiStore.setShowFilterPanel(true)">
             <i class="fa fa-chevron-right" aria-hidden="true"></i>
         </div>
     </div>
 
-    <div class="nav-mobile" v-show="!store.getters.showFilterPanel && !store.getters.showSearchPanel">
+    <div class="nav-mobile" v-show="!uiStore.showFilterPanel && !uiStore.showSearchPanel">
         <nav class="navbar bg-light navbar-expand">
             <div class="navbar-nav w-100 nav-justified">
                 <li class="nav-item">
-                    <a class="nav-link" @click.prevent="store.dispatch('setShowFilterPanel', true)">
+                    <a class="nav-link" @click.prevent="uiStore.setShowFilterPanel(true)">
                         <i class="fa fa-sliders" aria-hidden="true"></i>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" @click.prevent="store.dispatch('setShowSearchPanel', true)">
+                    <a class="nav-link" @click.prevent="uiStore.setShowSearchPanel(true)">
                         <i class="fa fa-search" aria-hidden="true"></i>
                     </a>
                 </li>
@@ -56,10 +56,10 @@
 </template>
 
 <script setup>
-import { useStore } from 'vuex'
+import { useUIStore } from '@/stores/ui'
 
 const emit = defineEmits(['mapToBuryatia', 'shareModal', 'selectMapModal'])
-const store = useStore()
+const uiStore = useUIStore()
 </script>
 
 <style lang="scss" scoped>

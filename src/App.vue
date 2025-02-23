@@ -42,10 +42,13 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import { useStore } from 'vuex'
 import _ from 'lodash'
 import { polygonCenter } from '@/utils/polygon'
 import { filterObjects, searchObjects } from '@/utils/filter-objects'
+
+import { useObjectsStore } from '@/stores/objects'
+import { useMapStore } from '@/stores/map'
+import { useUIStore } from '@/stores/ui'
 
 import AppModal from './components/ui/AppModal.vue'
 import AppMessage from './components/ui/AppMessage.vue'
@@ -57,7 +60,9 @@ import ObjectDetails from './components/ObjectDetails.vue'
 import ShareModal from './components/share/ShareModal.vue'
 import SelectMapModal from './components/SelectMapModal.vue'
 
-const store = useStore()
+const objectsStore = useObjectsStore()
+const mapStore = useMapStore()
+const uiStore = useUIStore()
 
 const shareModal = ref(false)
 const selectMapModal = ref(false)
@@ -67,18 +72,16 @@ const filter = ref(null)
 const searchResults = ref([])
 const searchResultsText = ref('')
 
-const activeObject = computed(() => store.getters.activeObject)
-const allObjects = computed(() => store.getters.allObjects)
 const inputSearch = computed(() => filter.value ? filter.value.inputSearch : '')
 
 const filteredByMainParams = computed(() => {
-    if (!filter.value) return allObjects.value
+    if (!filter.value) return objectsStore.items
     const countFilter = { ...filter.value, childCategories: [], categoriesGroups: [] }
-    return filterObjects(allObjects.value, countFilter)
+    return filterObjects(objectsStore.items, countFilter)
 })
 
 const filterResults = computed(() => {
-    return filterObjects(allObjects.value, filter.value)
+    return filterObjects(objectsStore.items, filter.value)
 })
 
 const findObjects = computed(() => {
@@ -96,12 +99,13 @@ const showBuryatia = () => {
 
 const showObjectInfo = () => {
     setTimeout(() => {
-        if (!activeObject.value) return
+        const obj = mapStore.activeObject
+        if (!obj) return
 
-        if (Array.isArray(activeObject.value.coords[0])) {
-            center.value = [...polygonCenter(activeObject.value.coords)]
+        if (Array.isArray(obj.coords[0])) {
+            center.value = [...polygonCenter(obj.coords)]
         } else {
-            center.value = [...activeObject.value.coords]
+            center.value = [...obj.coords]
         }
         zoom.value = 18
     }, 10)
@@ -112,7 +116,7 @@ const performSearch = () => {
     const searchText = inputSearch.value
 
     if (searchText) {
-        searchResults.value = searchObjects(allObjects.value, searchText)
+        searchResults.value = searchObjects(objectsStore.items, searchText)
         searchResultsText.value = `Найдено ${searchResults.value.length} объектов`
     }
 }
@@ -124,7 +128,7 @@ watch(inputSearch, () => {
     debouncedSearch()
 })
 
-watch(activeObject, (val, oldVal) => {
+watch(() => mapStore.activeObject, (val, oldVal) => {
     if (!val && oldVal) {
         setTimeout(() => {
             if (Array.isArray(oldVal.coords[0])) {
@@ -141,14 +145,14 @@ watch(activeObject, (val, oldVal) => {
 })
 
 onMounted(async () => {
-    await store.dispatch('fetchObjects')
+    await objectsStore.fetchObjects()
 
     const urlParams = new URLSearchParams(window.location.search)
 
     if (urlParams.has('object')) {
         const id = urlParams.get('object')
-        const obj = allObjects.value.find((item) => item.id == id)
-        if (obj) store.dispatch('setActiveObject', obj)
+        const obj = objectsStore.items.find((item) => item.id == id)
+        if (obj) mapStore.setActiveObject(obj)
     }
 
     if (urlParams.has('zoom') && urlParams.has('lat') && urlParams.has('lng')) {
@@ -157,7 +161,7 @@ onMounted(async () => {
     }
 
     if (window.innerWidth >= 992) {
-        store.dispatch('setShowFilterPanel', true)
+        uiStore.setShowFilterPanel(true)
     }
 })
 </script>

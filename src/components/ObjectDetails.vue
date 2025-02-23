@@ -1,33 +1,32 @@
 <template>
-    <div class="object-details" v-if="activeObject">
-
+    <div class="object-details" v-if="mapStore.activeObject">
         <div class="object-card-prev">
             <div class="object-card-prev__btn" @click="fullscreenObject = true">
                 <i class="fa fa-arrows-alt" aria-hidden="true"></i>
             </div>
-            <div class="object-card-prev__category">{{ activeObject.category?.name }}</div>
-            <div class="object-card-prev__title">{{ activeObject.title }}</div>
-            <div class="object-card-prev__address">{{ activeObject.address }}</div>
+            <div class="object-card-prev__category">{{ mapStore.activeObject.category?.name }}</div>
+            <div class="object-card-prev__title">{{ mapStore.activeObject.title }}</div>
+            <div class="object-card-prev__address">{{ mapStore.activeObject.address }}</div>
         </div>
 
         <div class="object-card custom-scroll" :class="{ fullscreen: fullscreenObject }">
             <div class="object-card__category">
-                {{ activeObject.category?.name }}
+                {{ mapStore.activeObject.category?.name }}
             </div>
             <a href="#" class="object-card__close" @click.prevent="close()">
                 <img src="./../assets/img/card/close-line.png" alt="Close" />
             </a>
 
             <div class="object-card__gallery">
-                <div class="card-gallery" v-if="activeObject.photos && activeObject.photos.length">
+                <div class="card-gallery" v-if="mapStore.activeObject.photos && mapStore.activeObject.photos.length">
                     <div class="card-gallery__main">
-                        <a :href="activeObject.photos[0]" data-fancybox="gallery">
-                            <img :src="activeObject.photos[0]" alt="" />
+                        <a :href="mapStore.activeObject.photos[0]" data-fancybox="gallery">
+                            <img :src="mapStore.activeObject.photos[0]" alt="" />
                         </a>
                     </div>
                     <div class="card-gallery__thumbs">
                         <div class="row">
-                            <div class="col-3" v-for="(item, index) in activeObject.photos" :key="index"
+                            <div class="col-3" v-for="(item, index) in mapStore.activeObject.photos" :key="index"
                                 v-show="index !== 0">
                                 <a :href="item" data-fancybox="gallery">
                                     <img :src="item" alt="" />
@@ -38,23 +37,23 @@
                 </div>
             </div>
 
-            <div class="object-card__name">{{ activeObject.title }}</div>
+            <div class="object-card__name">{{ mapStore.activeObject.title }}</div>
 
             <div class="object-card__typearea card-data-block">
-                <span class="card-badge">{{ activeObject.typeArea }}</span>
+                <span class="card-badge">{{ mapStore.activeObject.typeArea }}</span>
             </div>
 
             <div class="row">
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Общая площадь(га)</div>
-                        <div class="card-data-block__text">{{ activeObject.area }}</div>
+                        <div class="card-data-block__text">{{ mapStore.activeObject.area }}</div>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Свободная площадь(га)</div>
-                        <div class="card-data-block__text">{{ activeObject.free_area || '-' }}</div>
+                        <div class="card-data-block__text">{{ mapStore.activeObject.free_area || '-' }}</div>
                     </div>
                 </div>
             </div>
@@ -63,83 +62,84 @@
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Адрес:</div>
-                        <div class="card-data-block__text">{{ activeObject.address }}</div>
+                        <div class="card-data-block__text">{{ mapStore.activeObject.address }}</div>
                     </div>
                 </div>
                 <div class="col-6">
                     <div class="card-data-block">
                         <div class="card-data-block__title">Кадастровый номер</div>
-                        <div class="card-data-block__text">{{ activeObject.cadastralNumber }}</div>
+                        <div class="card-data-block__text">{{ mapStore.activeObject.cadastralNumber }}</div>
                     </div>
                 </div>
             </div>
 
             <div class="card-data-block object-card__icons">
-                <div class="prop-icon" title="Электричество" :class="{ has: activeObject.powerSupply }">
+                <div class="prop-icon" title="Электричество" :class="{ has: mapStore.activeObject.powerSupply }">
                     <img src="./../assets/img/card/light.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Газ" :class="{ has: activeObject.gasSupply }">
+                <div class="prop-icon" title="Газ" :class="{ has: mapStore.activeObject.gasSupply }">
                     <img src="./../assets/img/card/gas.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Водоснабжение" :class="{ has: activeObject.waterSupply }">
+                <div class="prop-icon" title="Водоснабжение" :class="{ has: mapStore.activeObject.waterSupply }">
                     <img src="./../assets/img/card/water.png" alt="" />
                 </div>
                 <div class="prop-icon" title="Интернет"
-                    :class="{ has: activeObject.transportInfrastructureAvailability }">
+                    :class="{ has: mapStore.activeObject.transportInfrastructureAvailability }">
                     <img src="./../assets/img/card/enet.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Водоотведение" :class="{ has: activeObject.waterDisposal }">
+                <div class="prop-icon" title="Водоотведение" :class="{ has: mapStore.activeObject.waterDisposal }">
                     <img src="./../assets/img/card/water-out.png" alt="" />
                 </div>
-                <div class="prop-icon" title="Теплоснабжение" :class="{ has: activeObject.heatSupply }">
+                <div class="prop-icon" title="Теплоснабжение" :class="{ has: mapStore.activeObject.heatSupply }">
                     <img src="./../assets/img/card/heating.png" alt="" />
                 </div>
             </div>
 
             <div class="card-data-block">
                 <div class="card-data-block__title">Категория земель</div>
-                <div class="card-data-block__text">{{ getLangCategory(activeObject.landCategory) }}</div>
+                <div class="card-data-block__text">{{ getLangCategory(mapStore.activeObject.landCategory) }}</div>
             </div>
             <div class="card-data-block">
                 <div class="card-data-block__title">Форма собственности</div>
-                <div class="card-data-block__text">{{ activeObject.typeOfOwnership?.title }}</div>
+                <div class="card-data-block__text">{{ mapStore.activeObject.typeOfOwnership?.title }}</div>
             </div>
 
-            <div class="card-data-block" v-if="activeObject.manager">
+            <div class="card-data-block" v-if="mapStore.activeObject.manager">
                 <div class="card-data-block__title">Контактное лицо</div>
                 <div class="card-manager">
                     <div class="row">
                         <div class="col-auto my-auto">
                             <div class="card-manager__image">
-                                <img :src="activeObject.manager.photo" class="img-fluid" alt="Manager" />
+                                <img :src="mapStore.activeObject.manager.photo" class="img-fluid" alt="Manager" />
                             </div>
                         </div>
                         <div class="col my-auto">
-                            <div class="card-data-block__title">{{ activeObject.manager.dolg }}</div>
-                            <div class="card-data-block__text mb-2">{{ activeObject.manager.name }}</div>
-                            <div v-if="activeObject.manager.phone">
-                                <a :href="`tel:${activeObject.manager.phone.replace(/\s/g, '')}`"
+                            <div class="card-data-block__title">{{ mapStore.activeObject.manager.dolg }}</div>
+                            <div class="card-data-block__text mb-2">{{ mapStore.activeObject.manager.name }}</div>
+                            <div v-if="mapStore.activeObject.manager.phone">
+                                <a :href="`tel:${mapStore.activeObject.manager.phone.replace(/\s/g, '')}`"
                                     class="card-data-block__text">
                                     <i class="fa fa-phone" aria-hidden="true"></i>
-                                    {{ activeObject.manager.phone }}
+                                    {{ mapStore.activeObject.manager.phone }}
                                 </a>
                             </div>
-                            <a :href="`mailto:${activeObject.manager.email}`" class="card-data-block__text">
-                                <i class="fa fa-envelope" aria-hidden="true"></i> {{ activeObject.manager.email }}
+                            <a :href="`mailto:${mapStore.activeObject.manager.email}`" class="card-data-block__text">
+                                <i class="fa fa-envelope" aria-hidden="true"></i> {{ mapStore.activeObject.manager.email
+                                }}
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="card-data-block" v-if="activeObject.privileges">
+            <div class="card-data-block" v-if="mapStore.activeObject.privileges">
                 <div class="card-data-block__title">Льготы и преференции</div>
-                <div class="card-data-block__text">{{ activeObject.privileges }}</div>
+                <div class="card-data-block__text">{{ mapStore.activeObject.privileges }}</div>
             </div>
 
-            <div class="card-data-block" v-if="activeObject.dopInfo">
+            <div class="card-data-block" v-if="mapStore.activeObject.dopInfo">
                 <div class="card-data-block__title">Дополнительная информация</div>
-                <div class="card-data-block__text" v-html="activeObject.dopInfo"></div>
+                <div class="card-data-block__text" v-html="mapStore.activeObject.dopInfo"></div>
             </div>
 
             <div @click="fullInfoModal = true" class="object-card__btn">
@@ -157,104 +157,107 @@
                 </div>
             </template>
             <template #default>
-                <div id="print-content" v-if="activeObject">
+                <div id="print-content" v-if="mapStore.activeObject">
                     <table class="table table-bordered">
                         <tbody>
-                            <tr v-if="activeObject.category?.name">
+                            <tr v-if="mapStore.activeObject.category?.name">
                                 <th>Категория</th>
-                                <td>{{ activeObject.category.name }}</td>
+                                <td>{{ mapStore.activeObject.category.name }}</td>
                             </tr>
-                            <tr v-if="activeObject.typeObject">
+                            <tr v-if="mapStore.activeObject.typeObject">
                                 <th>Тип объекта</th>
-                                <td>{{ activeObject.typeObject }}</td>
+                                <td>{{ mapStore.activeObject.typeObject }}</td>
                             </tr>
-                            <tr v-if="activeObject.title">
+                            <tr v-if="mapStore.activeObject.title">
                                 <th>Название</th>
-                                <td>{{ activeObject.title }}</td>
+                                <td>{{ mapStore.activeObject.title }}</td>
                             </tr>
-                            <tr v-if="activeObject.landCategory">
+                            <tr v-if="mapStore.activeObject.landCategory">
                                 <th>Категория земель</th>
-                                <td>{{ getLangCategory(activeObject.landCategory) }}</td>
+                                <td>{{ getLangCategory(mapStore.activeObject.landCategory) }}</td>
                             </tr>
-                            <tr v-if="activeObject.landTenure">
+                            <tr v-if="mapStore.activeObject.landTenure">
                                 <th>Вид права владения землей</th>
-                                <td>{{ activeObject.landTenure }}</td>
+                                <td>{{ mapStore.activeObject.landTenure }}</td>
                             </tr>
-                            <tr v-if="activeObject.municipalArea">
+                            <tr v-if="mapStore.activeObject.municipalArea">
                                 <th>Муниципальное образование</th>
-                                <td>{{ getMunicipalArea(activeObject.municipalArea) }}</td>
+                                <td>{{ getMunicipalArea(mapStore.activeObject.municipalArea) }}</td>
                             </tr>
-                            <tr v-if="activeObject.owner">
+                            <tr v-if="mapStore.activeObject.owner">
                                 <th>Собственник</th>
-                                <td>{{ activeObject.owner }}</td>
+                                <td>{{ mapStore.activeObject.owner }}</td>
                             </tr>
-                            <tr v-if="activeObject.typeOfOwnership?.title">
+                            <tr v-if="mapStore.activeObject.typeOfOwnership?.title">
                                 <th>Форма собственности</th>
-                                <td>{{ activeObject.typeOfOwnership.title }}</td>
+                                <td>{{ mapStore.activeObject.typeOfOwnership.title }}</td>
                             </tr>
-                            <tr v-if="activeObject.specialPurpose">
-                                <th>Целевое (приоритетное) назначение земельного участка, имеющиеся ограничения использования</th>
-                                <td>{{ activeObject.specialPurpose }}</td>
+                            <tr v-if="mapStore.activeObject.specialPurpose">
+                                <th>Целевое (приоритетное) назначение земельного участка, имеющиеся ограничения
+                                    использования</th>
+                                <td>{{ mapStore.activeObject.specialPurpose }}</td>
                             </tr>
-                            <tr v-if="activeObject.area">
+                            <tr v-if="mapStore.activeObject.area">
                                 <th>Общая площадь(га)</th>
-                                <td>{{ activeObject.area }}</td>
+                                <td>{{ mapStore.activeObject.area }}</td>
                             </tr>
-                            <tr v-if="activeObject.free_area">
+                            <tr v-if="mapStore.activeObject.free_area">
                                 <th>Свободная площадь(га)</th>
-                                <td>{{ activeObject.free_area }}</td>
+                                <td>{{ mapStore.activeObject.free_area }}</td>
                             </tr>
-                            <tr v-if="activeObject.cadastralNumber">
+                            <tr v-if="mapStore.activeObject.cadastralNumber">
                                 <th>Кадастровый номер земельного участка</th>
-                                <td>{{ activeObject.cadastralNumber }}</td>
+                                <td>{{ mapStore.activeObject.cadastralNumber }}</td>
                             </tr>
-                            <tr v-if="activeObject.expandability !== undefined">
+                            <tr v-if="mapStore.activeObject.expandability !== undefined">
                                 <th>Возможность расширения</th>
-                                <td>{{ activeObject.expandability ? 'Да' : 'Нет' }}</td>
+                                <td>{{ mapStore.activeObject.expandability ? 'Да' : 'Нет' }}</td>
                             </tr>
                             <tr>
                                 <th>Газоснабжение</th>
-                                <td>{{ activeObject.gasSupply || '-' }}</td>
+                                <td>{{ mapStore.activeObject.gasSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Теплоснабжение</th>
-                                <td>{{ activeObject.heatSupply || '-' }}</td>
+                                <td>{{ mapStore.activeObject.heatSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Электроснабжение</th>
-                                <td>{{ activeObject.powerSupply || '-' }}</td>
+                                <td>{{ mapStore.activeObject.powerSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Водоснабжение</th>
-                                <td>{{ activeObject.waterSupply || '-' }}</td>
+                                <td>{{ mapStore.activeObject.waterSupply || '-' }}</td>
                             </tr>
                             <tr>
                                 <th>Водоотведение</th>
-                                <td>{{ activeObject.waterDisposal || '-' }}</td>
+                                <td>{{ mapStore.activeObject.waterDisposal || '-' }}</td>
                             </tr>
-                            <tr v-if="activeObject.transportInfrastructureAvailability">
+                            <tr v-if="mapStore.activeObject.transportInfrastructureAvailability">
                                 <th>Наличие транспортной инфраструктуры</th>
-                                <td>{{ activeObject.transportInfrastructureAvailability }}</td>
+                                <td>{{ mapStore.activeObject.transportInfrastructureAvailability }}</td>
                             </tr>
-                            <tr v-if="activeObject.privileges">
+
+                            <tr v-if="mapStore.activeObject.privileges">
                                 <th>Льготы и преференции</th>
-                                <td>{{ activeObject.privileges }}</td>
+                                <td>{{ mapStore.activeObject.privileges }}</td>
                             </tr>
-                            <tr v-if="activeObject.provisionTerms">
+
+                            <tr v-if="mapStore.activeObject.provisionTerms">
                                 <th>Условия предоставления инвестору</th>
-                                <td>{{ activeObject.provisionTerms }}</td>
+                                <td>{{ mapStore.activeObject.provisionTerms }}</td>
                             </tr>
-                            <tr v-if="activeObject.dopInfo">
+                            <tr v-if="mapStore.activeObject.dopInfo">
                                 <th>Дополнительная информация</th>
-                                <td v-html="activeObject.dopInfo"></td>
+                                <td v-html="mapStore.activeObject.dopInfo"></td>
                             </tr>
-                            <tr v-if="activeObject.contact">
+                            <tr v-if="mapStore.activeObject.contact">
                                 <th>Контактное лицо</th>
-                                <td>{{ activeObject.contact }}</td>
+                                <td>{{ mapStore.activeObject.contact }}</td>
                             </tr>
-                            <tr v-if="activeObject.phone">
+                            <tr v-if="mapStore.activeObject.phone">
                                 <th>Телефон</th>
-                                <td>{{ activeObject.phone }}</td>
+                                <td>{{ mapStore.activeObject.phone }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -265,37 +268,35 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useStore } from 'vuex'
+import { ref, onMounted } from 'vue'
+import { useMapStore } from '@/stores/map'
+import { useDistrictsStore } from '@/stores/districts'
+import { useReferencesStore } from '@/stores/references'
 import { Fancybox } from '@fancyapps/ui/src/Fancybox/Fancybox.js'
 import AppModal from './ui/AppModal.vue'
 
-const store = useStore()
+const mapStore = useMapStore()
+const districtsStore = useDistrictsStore()
+const referencesStore = useReferencesStore()
 
 const fullInfoModal = ref(false)
 const fullscreenObject = ref(false)
 
-
-const activeObject = computed(() => store.getters.activeObject)
-const districts = computed(() => store.getters.districts)
-const allLandCategories = computed(() => store.getters.allLandCategories)
-
 const close = () => {
-    store.dispatch('setActiveObject', null)
+    mapStore.setActiveObject(null)
     fullscreenObject.value = false
 }
 
 const getLangCategory = (id) => {
-    const category = allLandCategories.value.find((item) => item.id == id)
+    const category = referencesStore.landCategories.find((item) => item.id == id)
     return category ? category.title : '-'
 }
 
 const getMunicipalArea = (id) => {
-    const area = districts.value.find((item) => item.id == +id)
+    const area = districtsStore.items.find((item) => item.id == +id)
     return area ? area.name : '-'
 }
 
-// Логика печати
 const callPrint = () => {
     const prtContent = document.getElementById('print-content')
     if (!prtContent) return
@@ -328,8 +329,8 @@ const callPrint = () => {
 }
 
 onMounted(async () => {
-    if (allLandCategories.value.length === 0) {
-        await store.dispatch('fetchLandCategories')
+    if (referencesStore.landCategories.length === 0) {
+        await referencesStore.fetchLandCategories()
     }
 
     Fancybox.bind('[data-fancybox]', {})
@@ -471,7 +472,7 @@ onMounted(async () => {
         justify-content: center;
 
         @media (max-width: 991.98px) {
-            display: none; 
+            display: none;
 
             .fullscreen & {
                 display: flex;

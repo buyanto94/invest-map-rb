@@ -1,5 +1,5 @@
 <template>
-    <div class="filter-panel" v-show="store.getters.showFilterPanel">
+    <div class="filter-panel" v-show="uiStore.showFilterPanel">
         <div class="filter-panel__header">
             <div class="row mb-4 mb-lg-5">
                 <div class="col my-auto">
@@ -8,11 +8,10 @@
                     </a>
                 </div>
                 <div class="col-auto">
-                    <div class="filter-panel__close d-none d-lg-flex"
-                        @click="store.dispatch('setShowFilterPanel', false)">
+                    <div class="filter-panel__close d-none d-lg-flex" @click="uiStore.setShowFilterPanel(false)">
                         <img src="./../assets/sidebar/arrow-left.png" alt="" />
                     </div>
-                    <button class="filter-panel__btn d-lg-none" @click="store.dispatch('setShowFilterPanel', false)">
+                    <button class="filter-panel__btn d-lg-none" @click="uiStore.setShowFilterPanel(false)">
                         Применить фильтр
                     </button>
                 </div>
@@ -24,17 +23,18 @@
             </div>
 
             <div class="mb-3" v-if="!inputSearch">
-                <app-select :options="formatingToOptions(districts, 'name', 'id')" @select="selectedDistrict = $event"
-                    :selected="selectedDistrict.name" :nullOption="{ name: 'Все районы', value: null }" />
+                <app-select :options="formatingToOptions(districtsStore.items, 'name', 'id')"
+                    @select="selectedDistrict = $event" :selected="selectedDistrict.name"
+                    :nullOption="{ name: 'Все районы', value: null }" />
             </div>
         </div>
 
+        <!-- Результаты поиска -->
         <div class="search-results" v-if="inputSearch">
             <div class="search-results__text">{{ searchingMessage }}</div>
             <div class="filter-panel__body search-body custom-scroll">
                 <div class="search-result" v-for="item in findObjects" :key="item.id"
-                    @click="store.dispatch('setActiveObject', item)"
-                    :class="{ active: store.getters.activeObject?.id === item.id }">
+                    @click="mapStore.setActiveObject(item)" :class="{ active: mapStore.activeObject?.id === item.id }">
                     <div class="search-result__category">{{ item.category?.name }}</div>
                     <div class="search-result__title">{{ item.title }}</div>
                     <div class="search-result__address">{{ item.address }}</div>
@@ -42,9 +42,10 @@
             </div>
         </div>
 
+        <!-- Фильтры (Аккордеон) -->
         <div class="filter-panel__body custom-scroll" v-else>
             <div class="accordion filter-accordion" id="filter-accordion">
-                <div class="mb-3" v-for="item in allCategoryGroup" :key="item.id">
+                <div class="mb-3" v-for="item in referencesStore.categoryGroups" :key="item.id">
                     <div @click="toggleCollapse('accordion-' + item.id)" class="accordion-btn">
                         <label class="checkbox-btn" @click.stop>
                             <input type="checkbox" :value="item.id" v-model="checkedCategoriesGroups" />
@@ -59,7 +60,7 @@
                     <div class="collapse accordion-collapse show" :id="'accordion-' + item.id">
                         <div class="py-3" v-if="item.type === 'filter'">
                             <div class="mb-3">
-                                <app-select :options="formatingToOptions(allLandCategories, 'title', 'id')"
+                                <app-select :options="formatingToOptions(referencesStore.landCategories, 'title', 'id')"
                                     @select="selectedLandCategories = $event" :selected="selectedLandCategories.name"
                                     :nullOption="{ name: 'Категория земель', value: null }" />
                             </div>
@@ -84,7 +85,7 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <app-select :options="formatingToOptions(allTypeOfOwnership, 'title', 'id')"
+                                <app-select :options="formatingToOptions(referencesStore.ownershipTypes, 'title', 'id')"
                                     @select="selectedTypeOfOwnership = $event" :selected="selectedTypeOfOwnership.name"
                                     :nullOption="{ name: 'Форма собственности', value: null }" />
                             </div>
@@ -100,7 +101,8 @@
                                     <input type="checkbox" :value="ch.id" v-model="checkedChildCategories" />
                                     <div class="category-checkbox__btn">
                                         <img :src="'https://invest-buryatia.ru' + ch.img" v-if="ch.img" />
-                                        <img :src="ch.type ? iconsMarker[ch.type] : iconsMarker['default']" v-else />
+                                        <img :src="ch.type ? mapStore.icons[ch.type] : mapStore.icons['default']"
+                                            v-else />
                                     </div>
                                     <div class="category-checkbox__text">{{ ch.name }}</div>
                                     <div class="category-checkbox__count">{{ countOfCategory(ch.id) }}</div>
@@ -112,8 +114,8 @@
 
                         <div class="py-3 px-2" v-else>
                             <div v-for="obj in freeCategory(item.child[0].id)" :key="obj.id">
-                                <div class="free-category-item" @click="store.dispatch('setActiveObject', obj)">{{
-                                    obj.title }}</div>
+                                <div class="free-category-item" @click="mapStore.setActiveObject(obj)">{{ obj.title }}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -122,7 +124,8 @@
         </div>
     </div>
 
-    <div class="search-panel" v-show="store.getters.showSearchPanel">
+    <!-- Мобильная панель поиска -->
+    <div class="search-panel" v-show="uiStore.showSearchPanel">
         <div class="search-panel__close" @click="closeSearchPanel">
             <i class="fa fa-times"></i>
         </div>
@@ -139,7 +142,7 @@
         <div class="collapse" id="search-panel-body">
             <div class="search-panel__body custom-scroll">
                 <div class="search-result" v-for="item in findObjects" :key="item.id" @click="onSearchResultClick(item)"
-                    :class="{ active: store.getters.activeObject?.id === item.id }">
+                    :class="{ active: mapStore.activeObject?.id === item.id }">
                     <div class="search-result__category">{{ item.category?.name }}</div>
                     <div class="search-result__title">{{ item.title }}</div>
                     <div class="search-result__address">{{ item.address }}</div>
@@ -150,11 +153,16 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useStore } from 'vuex'
+import { ref, onMounted, watch } from 'vue'
 import Slider from '@vueform/slider'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import AppSelect from '@/components/ui/AppSelect.vue'
+
+import { useUIStore } from '@/stores/ui'
+import { useReferencesStore } from '@/stores/references'
+import { useDistrictsStore } from '@/stores/districts'
+import { useObjectsStore } from '@/stores/objects'
+import { useMapStore } from '@/stores/map'
 
 const props = defineProps({
     findObjects: Array,
@@ -164,7 +172,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
-const store = useStore()
+
+const uiStore = useUIStore()
+const referencesStore = useReferencesStore()
+const districtsStore = useDistrictsStore()
+const objectsStore = useObjectsStore()
+const mapStore = useMapStore()
 
 const inputSearch = ref('')
 const searchPanelBody = ref(false)
@@ -180,13 +193,6 @@ const selectedDistrict = ref({ name: 'Все районы', value: null })
 const selectedLandCategories = ref({ name: 'Категория земель', value: null })
 const selectedTypeArea = ref(null)
 const selectedTypeOfOwnership = ref({ name: 'Форма собственности', value: null })
-
-const allCategoryGroup = computed(() => store.getters.allCategoryGroup)
-const allTypeOfOwnership = computed(() => store.getters.allTypeOfOwnership)
-const allLandCategories = computed(() => store.getters.allLandCategories)
-const districts = computed(() => store.getters.districts)
-const allObjects = computed(() => store.getters.allObjects)
-const iconsMarker = computed(() => store.getters.iconsMarker)
 
 const formatingToOptions = (options, nameKey, valueKey) => {
     return options.map(item => ({ name: item[nameKey], value: item[valueKey] }))
@@ -206,7 +212,7 @@ const countOfCategoryGroup = (id) => {
 }
 
 const freeCategory = (categoryId) => {
-    return allObjects.value.filter(item => categoryId === item.category.id)
+    return objectsStore.items.filter(item => categoryId === item.category.id)
 }
 
 const selectTypeArea = (type) => {
@@ -214,24 +220,24 @@ const selectTypeArea = (type) => {
 }
 
 const closeSearchPanel = () => {
-    store.dispatch('setActiveObject', null)
+    mapStore.setActiveObject(null)
     inputSearch.value = ''
-    store.dispatch('setShowSearchPanel', false)
+    uiStore.setShowSearchPanel(false)
 }
 
 const onSearchResultClick = (item) => {
-    store.dispatch('setActiveObject', item)
+    mapStore.setActiveObject(item)
     const el = document.getElementById('search-panel-body')
     if (el) new bootstrap.Collapse(el).hide()
 }
 
 const initStartParams = () => {
-    if (!allObjects.value || allObjects.value.length === 0) return
+    if (!objectsStore.items || objectsStore.items.length === 0) return
 
     let areaMax = 0
     let distanceMax = 0
-    
-    allObjects.value.forEach(item => {
+
+    objectsStore.items.forEach(item => {
         if (+item.distanceToUU > distanceMax) distanceMax = +item.distanceToUU
         const itemArea = parseFloat(item.area.replace(',', '.'))
         if (itemArea > areaMax) areaMax = itemArea
@@ -243,13 +249,13 @@ const initStartParams = () => {
             checkedCategoriesGroups.value.push(item.category.parentId)
         }
     })
-    
+
     areaMax = Math.ceil(areaMax)
     distanceMax = Math.ceil(distanceMax)
 
     distancesMarks.value = [0, distanceMax]
     areaMarks.value = [0, areaMax]
-    
+
     if (distances.value[1] === 0) distances.value = [0, distanceMax]
     if (area.value[1] === 0) area.value = [0, areaMax]
 }
@@ -278,9 +284,8 @@ watch([
     })
 }, { deep: true })
 
-watch(allObjects, () => {
+watch(() => objectsStore.items, () => {
     initStartParams()
-    
 }, { immediate: true })
 
 onMounted(async () => {
@@ -291,8 +296,8 @@ onMounted(async () => {
     }
 
     await Promise.all([
-        store.dispatch('fetchCategoryGroup'),
-        store.dispatch('fetchTypeOfOwnership')
+        referencesStore.fetchCategoryGroups(),
+        referencesStore.fetchOwnershipTypes()
     ])
 })
 </script>

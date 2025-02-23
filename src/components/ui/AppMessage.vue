@@ -1,9 +1,9 @@
 <template>
-    <div class="toast-block position-fixed top-0 end-0 p-3" v-show="message">
+    <div class="toast-block position-fixed top-0 end-0 p-3" v-show="uiStore.message">
         <div id="liveToast" class="toast align-items-center text-white border-0" role="alert">
             <div :class="'bg-' + typeMessageClass">
-                <div class="d-flex" v-if="message">
-                    <div class="toast-body">{{ message.text }}</div>
+                <div class="d-flex" v-if="uiStore.message">
+                    <div class="toast-body">{{ uiStore.message.text }}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" @click="hideToast"></button>
                 </div>
             </div>
@@ -13,16 +13,14 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
-import { useStore } from 'vuex'
+import { useUIStore } from '@/stores/ui'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
-const store = useStore()
+const uiStore = useUIStore()
 const timeoutID = ref(null)
 
-const message = computed(() => store.getters.message)
-
 const typeMessageClass = computed(() => {
-    return (message.value && message.value.type) ? message.value.type : 'primary'
+    return (uiStore.message && uiStore.message.type) ? uiStore.message.type : 'primary'
 })
 
 const showToast = () => {
@@ -45,10 +43,10 @@ const hideToast = () => {
     toast.hide()
 
     if (timeoutID.value) clearTimeout(timeoutID.value)
-    store.dispatch('clearMessage')
+    uiStore.clearMessage()
 }
 
-watch(message, (val) => {
+watch(() => uiStore.message, (val) => {
     if (val) showToast()
 })
 </script>
