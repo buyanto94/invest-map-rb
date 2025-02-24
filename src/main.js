@@ -6,6 +6,5 @@ import './assets/styles/index.scss'
 const app = createApp(App)
 
 app.use(createPinia())
-app.use(store)
 
 app.mount('#app')
