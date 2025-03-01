@@ -14,7 +14,7 @@
                 {{ mapStore.activeObject.category?.name }}
             </div>
             <a href="#" class="object-card__close" @click.prevent="close()">
-                <img src="./../assets/img/card/close-line.png" alt="Close" />
+                <img src="@/assets/img/card/close-line.png" alt="Close" />
             </a>
 
             <div class="object-card__gallery">
@@ -75,23 +75,23 @@
 
             <div class="card-data-block object-card__icons">
                 <div class="prop-icon" title="Электричество" :class="{ has: mapStore.activeObject.powerSupply }">
-                    <img src="./../assets/img/card/light.png" alt="" />
+                    <img src="@/assets/img/card/light.png" alt="" />
                 </div>
                 <div class="prop-icon" title="Газ" :class="{ has: mapStore.activeObject.gasSupply }">
-                    <img src="./../assets/img/card/gas.png" alt="" />
+                    <img src="@/assets/img/card/gas.png" alt="" />
                 </div>
                 <div class="prop-icon" title="Водоснабжение" :class="{ has: mapStore.activeObject.waterSupply }">
-                    <img src="./../assets/img/card/water.png" alt="" />
+                    <img src="@/assets/img/card/water.png" alt="" />
                 </div>
                 <div class="prop-icon" title="Интернет"
                     :class="{ has: mapStore.activeObject.transportInfrastructureAvailability }">
-                    <img src="./../assets/img/card/enet.png" alt="" />
+                    <img src="@/assets/img/card/enet.png" alt="" />
                 </div>
                 <div class="prop-icon" title="Водоотведение" :class="{ has: mapStore.activeObject.waterDisposal }">
-                    <img src="./../assets/img/card/water-out.png" alt="" />
+                    <img src="@/assets/img/card/water-out.png" alt="" />
                 </div>
                 <div class="prop-icon" title="Теплоснабжение" :class="{ has: mapStore.activeObject.heatSupply }">
-                    <img src="./../assets/img/card/heating.png" alt="" />
+                    <img src="@/assets/img/card/heating.png" alt="" />
                 </div>
             </div>
 
@@ -273,7 +273,7 @@ import { useMapStore } from '@/stores/map'
 import { useDistrictsStore } from '@/stores/districts'
 import { useReferencesStore } from '@/stores/references'
 import { Fancybox } from '@fancyapps/ui/src/Fancybox/Fancybox.js'
-import AppModal from './ui/AppModal.vue'
+import AppModal from '@/components/ui/AppSelect.vue'
 
 const mapStore = useMapStore()
 const districtsStore = useDistrictsStore()

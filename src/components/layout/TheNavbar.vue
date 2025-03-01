@@ -1,7 +1,7 @@
 <template>
     <div class="nav-desktop" v-show="!uiStore.showFilterPanel">
         <div class="nav-desktop__logo">
-            <img src="./../assets/img/logo-mini.png" class="img-fluid" alt="" />
+            <img src="@/assets/img/logo-mini.png" class="img-fluid" alt="" />
         </div>
         <div class="nav-desktop__item" @click="uiStore.setShowFilterPanel(true)">
             <i class="fa fa-search" aria-hidden="true"></i>

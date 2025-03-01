@@ -4,12 +4,12 @@
             <div class="row mb-4 mb-lg-5">
                 <div class="col my-auto">
                     <a href="/">
-                        <img src="./../assets/logo.png" alt="" class="filter-panel__logo d-none d-lg-block" />
+                        <img src="@/assets/logo.png" alt="" class="filter-panel__logo d-none d-lg-block" />
                     </a>
                 </div>
                 <div class="col-auto">
                     <div class="filter-panel__close d-none d-lg-flex" @click="uiStore.setShowFilterPanel(false)">
-                        <img src="./../assets/sidebar/arrow-left.png" alt="" />
+                        <img src="@/assets/sidebar/arrow-left.png" alt="" />
                     </div>
                     <button class="filter-panel__btn d-lg-none" @click="uiStore.setShowFilterPanel(false)">
                         Применить фильтр
