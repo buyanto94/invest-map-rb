@@ -17,25 +17,7 @@
                 <img src="@/assets/img/card/close-line.png" alt="Close" />
             </a>
 
-            <div class="object-card__gallery">
-                <div class="card-gallery" v-if="mapStore.activeObject.photos && mapStore.activeObject.photos.length">
-                    <div class="card-gallery__main">
-                        <a :href="mapStore.activeObject.photos[0]" data-fancybox="gallery">
-                            <img :src="mapStore.activeObject.photos[0]" alt="" />
-                        </a>
-                    </div>
-                    <div class="card-gallery__thumbs">
-                        <div class="row">
-                            <div class="col-3" v-for="(item, index) in mapStore.activeObject.photos" :key="index"
-                                v-show="index !== 0">
-                                <a :href="item" data-fancybox="gallery">
-                                    <img :src="item" alt="" />
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <ObjectGallery :photos="mapStore.activeObject.photos" />
 
             <div class="object-card__name">{{ mapStore.activeObject.title }}</div>
 
@@ -73,27 +55,7 @@
                 </div>
             </div>
 
-            <div class="card-data-block object-card__icons">
-                <div class="prop-icon" title="Электричество" :class="{ has: mapStore.activeObject.powerSupply }">
-                    <img src="@/assets/img/card/light.png" alt="" />
-                </div>
-                <div class="prop-icon" title="Газ" :class="{ has: mapStore.activeObject.gasSupply }">
-                    <img src="@/assets/img/card/gas.png" alt="" />
-                </div>
-                <div class="prop-icon" title="Водоснабжение" :class="{ has: mapStore.activeObject.waterSupply }">
-                    <img src="@/assets/img/card/water.png" alt="" />
-                </div>
-                <div class="prop-icon" title="Интернет"
-                    :class="{ has: mapStore.activeObject.transportInfrastructureAvailability }">
-                    <img src="@/assets/img/card/enet.png" alt="" />
-                </div>
-                <div class="prop-icon" title="Водоотведение" :class="{ has: mapStore.activeObject.waterDisposal }">
-                    <img src="@/assets/img/card/water-out.png" alt="" />
-                </div>
-                <div class="prop-icon" title="Теплоснабжение" :class="{ has: mapStore.activeObject.heatSupply }">
-                    <img src="@/assets/img/card/heating.png" alt="" />
-                </div>
-            </div>
+            <ObjectUtilities :item="mapStore.activeObject" />
 
             <div class="card-data-block">
                 <div class="card-data-block__title">Категория земель</div>
@@ -106,30 +68,7 @@
 
             <div class="card-data-block" v-if="mapStore.activeObject.manager">
                 <div class="card-data-block__title">Контактное лицо</div>
-                <div class="card-manager">
-                    <div class="row">
-                        <div class="col-auto my-auto">
-                            <div class="card-manager__image">
-                                <img :src="mapStore.activeObject.manager.photo" class="img-fluid" alt="Manager" />
-                            </div>
-                        </div>
-                        <div class="col my-auto">
-                            <div class="card-data-block__title">{{ mapStore.activeObject.manager.dolg }}</div>
-                            <div class="card-data-block__text mb-2">{{ mapStore.activeObject.manager.name }}</div>
-                            <div v-if="mapStore.activeObject.manager.phone">
-                                <a :href="`tel:${mapStore.activeObject.manager.phone.replace(/\s/g, '')}`"
-                                    class="card-data-block__text">
-                                    <i class="fa fa-phone" aria-hidden="true"></i>
-                                    {{ mapStore.activeObject.manager.phone }}
-                                </a>
-                            </div>
-                            <a :href="`mailto:${mapStore.activeObject.manager.email}`" class="card-data-block__text">
-                                <i class="fa fa-envelope" aria-hidden="true"></i> {{ mapStore.activeObject.manager.email
-                                }}
-                            </a>
-                        </div>
-                    </div>
-                </div>
+                <ObjectManager :manager="mapStore.activeObject.manager" />
             </div>
 
             <div class="card-data-block" v-if="mapStore.activeObject.privileges">
@@ -158,7 +97,7 @@
             </template>
             <template #default>
                 <div id="print-content" v-if="mapStore.activeObject">
-                    <table class="table table-bordered">
+                    <table border="1" style="text-align: left; border-collapse: collapse" class="table table-bordered">
                         <tbody>
                             <tr v-if="mapStore.activeObject.category?.name">
                                 <th>Категория</th>
@@ -272,8 +211,11 @@ import { ref, onMounted } from 'vue'
 import { useMapStore } from '@/stores/map'
 import { useDistrictsStore } from '@/stores/districts'
 import { useReferencesStore } from '@/stores/references'
-import { Fancybox } from '@fancyapps/ui/src/Fancybox/Fancybox.js'
-import AppModal from '@/components/ui/AppSelect.vue'
+import AppModal from '@/components/ui/AppModal.vue'
+
+import ObjectGallery from './details/ObjectGallery.vue'
+import ObjectManager from './details/ObjectManager.vue'
+import ObjectUtilities from './details/ObjectUtilities.vue'
 
 const mapStore = useMapStore()
 const districtsStore = useDistrictsStore()
@@ -332,8 +274,6 @@ onMounted(async () => {
     if (referencesStore.landCategories.length === 0) {
         await referencesStore.fetchLandCategories()
     }
-
-    Fancybox.bind('[data-fancybox]', {})
 })
 </script>
 
@@ -472,7 +412,7 @@ onMounted(async () => {
         justify-content: center;
 
         @media (max-width: 991.98px) {
-            display: none;
+            display: none; 
 
             .fullscreen & {
                 display: flex;
@@ -485,21 +425,11 @@ onMounted(async () => {
         }
     }
 
-    &__gallery {
-        margin-bottom: 20px;
-    }
-
     &__name {
         font-weight: 600;
         font-size: 18px;
         line-height: 24px;
         margin-bottom: 17px;
-    }
-
-    &__icons {
-        padding: 15px 0;
-        border-top: 1px solid #ffffff1a;
-        border-bottom: 1px solid #ffffff1a;
     }
 }
 
@@ -510,37 +440,6 @@ onMounted(async () => {
     font-weight: 600;
     font-size: 14px;
     padding: 2px 8px;
-}
-
-.card-gallery {
-    img {
-        width: 100%;
-        object-fit: cover;
-    }
-
-    &__main {
-        margin-bottom: 2px;
-
-        img {
-            height: 200px;
-        }
-    }
-
-    &__thumbs {
-        img {
-            height: 60px;
-            margin-bottom: 2px;
-        }
-
-        .row {
-            margin-right: -1px;
-            margin-left: -1px;
-
-            >[class*='col-'] {
-                padding: 1px;
-            }
-        }
-    }
 }
 
 .card-data-block {
@@ -559,59 +458,6 @@ onMounted(async () => {
         color: #ffffff;
         display: block;
         margin-bottom: 5px;
-    }
-}
-
-.prop-icon {
-    width: 48px;
-    height: 48px;
-    padding: 10px;
-    border-radius: 100%;
-    border: 2px solid rgba(255, 255, 255, 0.1);
-    position: relative;
-    display: inline-block;
-    margin-right: 10px;
-
-    &.has {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
-
-        &::before {
-            content: '';
-            position: absolute;
-            right: -3px;
-            top: 0px;
-            width: 18px;
-            height: 18px;
-            background: url(@/assets/img/card/has.png) center/cover no-repeat;
-        }
-    }
-
-    img {
-        width: 100%;
-        height: auto;
-    }
-}
-
-.card-manager {
-    &__image {
-        width: 80px;
-        border-radius: 50%;
-        overflow: hidden;
-        margin-right: 10px;
-    }
-
-    a {
-        color: inherit;
-        text-decoration: none;
-
-        &:hover {
-            text-decoration: underline;
-        }
-    }
-
-    i {
-        margin-right: 5px;
     }
 }
 </style>
