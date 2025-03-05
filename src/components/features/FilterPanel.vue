@@ -29,20 +29,9 @@
             </div>
         </div>
 
-        <!-- Результаты поиска -->
-        <div class="search-results" v-if="inputSearch">
-            <div class="search-results__text">{{ searchingMessage }}</div>
-            <div class="filter-panel__body search-body custom-scroll">
-                <div class="search-result" v-for="item in findObjects" :key="item.id"
-                    @click="mapStore.setActiveObject(item)" :class="{ active: mapStore.activeObject?.id === item.id }">
-                    <div class="search-result__category">{{ item.category?.name }}</div>
-                    <div class="search-result__title">{{ item.title }}</div>
-                    <div class="search-result__address">{{ item.address }}</div>
-                </div>
-            </div>
-        </div>
+        <SearchResults v-if="inputSearch" :items="findObjects" :message="searchingMessage"
+            :activeId="mapStore.activeObject?.id" @select="onSearchResultClick" />
 
-        <!-- Фильтры (Аккордеон) -->
         <div class="filter-panel__body custom-scroll" v-else>
             <div class="accordion filter-accordion" id="filter-accordion">
                 <div class="mb-3" v-for="item in referencesStore.categoryGroups" :key="item.id">
@@ -59,43 +48,14 @@
 
                     <div class="collapse accordion-collapse show" :id="'accordion-' + item.id">
                         <div class="py-3" v-if="item.type === 'filter'">
-                            <div class="mb-3">
-                                <app-select :options="formatingToOptions(referencesStore.landCategories, 'title', 'id')"
-                                    @select="selectedLandCategories = $event" :selected="selectedLandCategories.name"
-                                    :nullOption="{ name: 'Категория земель', value: null }" />
-                            </div>
-                            <div class="mb-3">
-                                <label>Тип</label>
-                                <div class="radio-bts">
-                                    <div class="radio-bts__item" :class="{ active: selectedTypeArea === 'greenfield' }"
-                                        @click="selectTypeArea('greenfield')">
-                                        <label>Greenfield</label>
-                                    </div>
-                                    <div class="radio-bts__item" :class="{ active: selectedTypeArea === 'brownfield' }"
-                                        @click="selectTypeArea('brownfield')">
-                                        <label>Brownfield</label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label>Общая площадь (га)</label>
-                                <div class="filter-slider">
-                                    <Slider v-model="area" :min="areaMarks[0]" :max="areaMarks[1]"
-                                        tooltipPosition="bottom" />
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <app-select :options="formatingToOptions(referencesStore.ownershipTypes, 'title', 'id')"
-                                    @select="selectedTypeOfOwnership = $event" :selected="selectedTypeOfOwnership.name"
-                                    :nullOption="{ name: 'Форма собственности', value: null }" />
-                            </div>
-                            <div class="mb-3">
-                                <label>До Улан-Удэ (км)</label>
-                                <div class="filter-slider">
-                                    <Slider v-model="distances" :min="distancesMarks[0]" :max="distancesMarks[1]"
-                                        tooltipPosition="bottom" />
-                                </div>
-                            </div>
+                            <FilterControls
+                                :landCategories="formatingToOptions(referencesStore.landCategories, 'title', 'id')"
+                                :ownershipTypes="formatingToOptions(referencesStore.ownershipTypes, 'title', 'id')"
+                                v-model:selectedLandCategory="selectedLandCategories"
+                                v-model:selectedOwnership="selectedTypeOfOwnership" v-model:typeArea="selectedTypeArea"
+                                v-model:area="area" :areaMarks="areaMarks" v-model:distances="distances"
+                                :distancesMarks="distancesMarks" />
+
                             <div class="mb-3">
                                 <label class="category-checkbox" v-for="ch in item.child" :key="ch.id">
                                     <input type="checkbox" :value="ch.id" v-model="checkedChildCategories" />
@@ -124,7 +84,6 @@
         </div>
     </div>
 
-    <!-- Мобильная панель поиска -->
     <div class="search-panel" v-show="uiStore.showSearchPanel">
         <div class="search-panel__close" @click="closeSearchPanel">
             <i class="fa fa-times"></i>
@@ -154,9 +113,11 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
-import Slider from '@vueform/slider'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import AppSelect from '@/components/ui/AppSelect.vue'
+
+import SearchResults from './filter/SearchResults.vue'
+import FilterControls from './filter/FilterControls.vue'
 
 import { useUIStore } from '@/stores/ui'
 import { useReferencesStore } from '@/stores/references'
@@ -213,10 +174,6 @@ const countOfCategoryGroup = (id) => {
 
 const freeCategory = (categoryId) => {
     return objectsStore.items.filter(item => categoryId === item.category.id)
-}
-
-const selectTypeArea = (type) => {
-    selectedTypeArea.value = selectedTypeArea.value === type ? null : type
 }
 
 const closeSearchPanel = () => {
@@ -422,12 +379,6 @@ onMounted(async () => {
     overflow-y: visible;
 }
 
-.filter-slider {
-    padding: 0 15px;
-    margin-top: 10px;
-    margin-bottom: 50px;
-}
-
 .accordion-btn {
     display: block;
     cursor: pointer;
@@ -567,48 +518,6 @@ onMounted(async () => {
         opacity: 0.5;
         font-size: 13px;
         color: #292e91;
-    }
-}
-
-.radio-bts {
-    width: 100%;
-    display: flex;
-    flex-wrap: wrap;
-    margin-bottom: 30px;
-    padding: 1px;
-    background: linear-gradient(302.38deg, #292ec4 -32.56%, #4ca9df 92.35%);
-
-    &__item {
-        flex-basis: 0;
-        flex-grow: 1;
-        text-align: center;
-
-        label {
-            background-color: #f5f5fa;
-            font-weight: 600;
-            color: #292e91;
-            display: block;
-            cursor: pointer;
-            padding: 15px 10px;
-            font-size: 16px;
-            margin: 0;
-            border-right: 1px solid #4ca9df;
-        }
-
-        &:first-child label {
-            border-radius: 1px 0 0 1px;
-            border-left: none;
-        }
-
-        &:last-child label {
-            border-radius: 0 1px 1px 0;
-            border-right: none;
-        }
-
-        &.active label {
-            background: #292e91;
-            color: #fff;
-        }
     }
 }
 
