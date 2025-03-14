@@ -25,7 +25,7 @@
                             </tr>
                             <tr v-if="item.landCategory">
                                 <th>Категория земель</th>
-                                <td>{{ getLangCategory(item.landCategory) }}</td>
+                                <td>{{ getCategoryName(item.landCategory) }}</td>
                             </tr>
                             <tr v-if="item.landTenure">
                                 <th>Вид права владения землей</th>
@@ -33,7 +33,7 @@
                             </tr>
                             <tr v-if="item.municipalArea">
                                 <th>Муниципальное образование</th>
-                                <td>{{ getMunicipalArea(item.municipalArea) }}</td>
+                                <td>{{ getDistrictName(item.municipalArea) }}</td>
                             </tr>
                             <tr v-if="item.owner">
                                 <th>Собственник</th>
@@ -117,8 +117,7 @@
 
 <script setup>
 import AppModal from '@/components/ui/AppModal.vue'
-import { useReferencesStore } from '@/stores/references'
-import { useDistrictsStore } from '@/stores/districts'
+import { useFormatters } from '@/composables/useFormatters'
 
 defineProps({
     isOpen: Boolean,
@@ -127,18 +126,7 @@ defineProps({
 
 const emit = defineEmits(['update:isOpen'])
 
-const referencesStore = useReferencesStore()
-const districtsStore = useDistrictsStore()
-
-const getLangCategory = (id) => {
-    const category = referencesStore.landCategories.find((item) => item.id == id)
-    return category ? category.title : '-'
-}
-
-const getMunicipalArea = (id) => {
-    const area = districtsStore.items.find((item) => item.id == +id)
-    return area ? area.name : '-'
-}
+const { getCategoryName, getDistrictName } = useFormatters()
 
 const callPrint = () => {
     const prtContent = document.getElementById('print-content')

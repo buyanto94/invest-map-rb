@@ -51,7 +51,7 @@
 
             <div class="card-data-block">
                 <div class="card-data-block__title">Категория земель</div>
-                <div class="card-data-block__text">{{ getLangCategory(mapStore.activeObject.landCategory) }}</div>
+                <div class="card-data-block__text">{{ getCategoryName(mapStore.activeObject.landCategory) }}</div>
             </div>
             <div class="card-data-block">
                 <div class="card-data-block__title">Форма собственности</div>
@@ -83,9 +83,9 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useMapStore } from '@/stores/map'
-import { useReferencesStore } from '@/stores/references'
+import { useFormatters } from '@/composables/useFormatters'
 
 import ObjectGallery from './details/ObjectGallery.vue'
 import ObjectManager from './details/ObjectManager.vue'
@@ -94,7 +94,7 @@ import ObjectPreviewBar from './details/ObjectPreviewBar.vue'
 import ObjectFullInfo from './details/ObjectFullInfo.vue'
 
 const mapStore = useMapStore()
-const referencesStore = useReferencesStore()
+const { getCategoryName } = useFormatters()
 
 const fullInfoModal = ref(false)
 const fullscreenObject = ref(false)
@@ -103,15 +103,4 @@ const close = () => {
     mapStore.setActiveObject(null)
     fullscreenObject.value = false
 }
-
-const getLangCategory = (id) => {
-    const category = referencesStore.landCategories.find((item) => item.id == id)
-    return category ? category.title : '-'
-}
-
-onMounted(async () => {
-    if (referencesStore.landCategories.length === 0) {
-        await referencesStore.fetchLandCategories()
-    }
-})
 </script>
