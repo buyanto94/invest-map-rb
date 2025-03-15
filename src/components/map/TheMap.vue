@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, watch, nextTick, onMounted } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { LMap, LTileLayer, LControlZoom, LPolygon, LPopup } from '@vue-leaflet/vue-leaflet'
 import MarkerCluster from './MarkerCluster.vue'
 import MapFeature from './MapFeature.vue'
@@ -78,10 +78,6 @@ const onLeafletReady = async () => {
 const handleMapClick = () => {
     focusedDistrict.value = null
 }
-
-onMounted(async () => {
-    await districtsStore.fetchDistricts()
-})
 
 watch(() => mapStore.activeLayer, () => {
     leafletReady.value = false

@@ -45,7 +45,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import _ from 'lodash'
 import { polygonCenter } from '@/utils/polygon'
 import { filterObjects, searchObjects } from '@/utils/filter-objects'
-
+import { useAppInit } from '@/composables/useAppInit' 
 import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
 import { useUIStore } from '@/stores/ui'
@@ -60,6 +60,7 @@ import ShareModal from '@/components/features/ShareModal.vue'
 import TheMap from '@/components/map/TheMap.vue'
 import SelectMapModal from '@/components/map/SelectMapModal.vue'
 
+const { init } = useAppInit()
 const objectsStore = useObjectsStore()
 const mapStore = useMapStore()
 const uiStore = useUIStore()
@@ -145,6 +146,7 @@ watch(() => mapStore.activeObject, (val, oldVal) => {
 })
 
 onMounted(async () => {
+    await init()
     await objectsStore.fetchObjects()
 
     const urlParams = new URLSearchParams(window.location.search)

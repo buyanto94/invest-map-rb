@@ -251,10 +251,5 @@ onMounted(async () => {
         searchCollapse.addEventListener('shown.bs.collapse', () => searchPanelBody.value = true)
         searchCollapse.addEventListener('hidden.bs.collapse', () => searchPanelBody.value = false)
     }
-
-    await Promise.all([
-        referencesStore.fetchCategoryGroups(),
-        referencesStore.fetchOwnershipTypes()
-    ])
 })
 </script>
