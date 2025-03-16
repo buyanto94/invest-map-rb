@@ -41,57 +41,35 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
-import _ from 'lodash'
+import { ref, watch, onMounted } from 'vue'
 import { polygonCenter } from '@/utils/polygon'
-import { filterObjects, searchObjects } from '@/utils/filter-objects'
-import { useAppInit } from '@/composables/useAppInit' 
 import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
 import { useUIStore } from '@/stores/ui'
+import { useAppInit } from '@/composables/useAppInit'
+import { useObjectFilter } from '@/composables/useObjectFilter'
 
-import AppModal from '@/components/ui/AppModal.vue'
-import AppMessage from '@/components/ui/AppMessage.vue'
-import TheTopbar from '@/components/layout/TheTopbar.vue'
-import TheNavbar from '@/components/layout/TheNavbar.vue'
-import FilterPanel from '@/components/features/FilterPanel.vue'
-import ObjectDetails from '@/components/features/ObjectDetails.vue'
-import ShareModal from '@/components/features/ShareModal.vue'
-import TheMap from '@/components/map/TheMap.vue'
-import SelectMapModal from '@/components/map/SelectMapModal.vue'
+import AppModal from './components/ui/AppModal.vue'
+import AppMessage from './components/ui/AppMessage.vue'
+import TheTopbar from './components/layout/TheTopbar.vue'
+import TheNavbar from './components/layout/TheNavbar.vue'
+import TheMap from './components/map/TheMap.vue'
+import FilterPanel from './components/features/FilterPanel.vue'
+import ObjectDetails from './components/features/ObjectDetails.vue'
+import ShareModal from './components/features/ShareModal.vue'
+import SelectMapModal from './components/map/SelectMapModal.vue'
 
-const { init } = useAppInit()
 const objectsStore = useObjectsStore()
 const mapStore = useMapStore()
 const uiStore = useUIStore()
+const { init } = useAppInit()
+
+const { filter, findObjects, filteredByMainParams, searchResultsText } = useObjectFilter()
 
 const shareModal = ref(false)
 const selectMapModal = ref(false)
 const zoom = ref(6)
 const center = ref([53.328248, 108.837283])
-const filter = ref(null)
-const searchResults = ref([])
-const searchResultsText = ref('')
-
-const inputSearch = computed(() => filter.value ? filter.value.inputSearch : '')
-
-const filteredByMainParams = computed(() => {
-    if (!filter.value) return objectsStore.items
-    const countFilter = { ...filter.value, childCategories: [], categoriesGroups: [] }
-    return filterObjects(objectsStore.items, countFilter)
-})
-
-const filterResults = computed(() => {
-    return filterObjects(objectsStore.items, filter.value)
-})
-
-const findObjects = computed(() => {
-    if (inputSearch.value) {
-        return searchResults.value
-    } else {
-        return filterResults.value
-    }
-})
 
 const showBuryatia = () => {
     zoom.value = 6
@@ -112,23 +90,6 @@ const showObjectInfo = () => {
     }, 10)
 }
 
-const performSearch = () => {
-    searchResults.value = []
-    const searchText = inputSearch.value
-
-    if (searchText) {
-        searchResults.value = searchObjects(objectsStore.items, searchText)
-        searchResultsText.value = `Найдено ${searchResults.value.length} объектов`
-    }
-}
-
-const debouncedSearch = _.debounce(performSearch, 500)
-
-watch(inputSearch, () => {
-    searchResultsText.value = 'Поиск...'
-    debouncedSearch()
-})
-
 watch(() => mapStore.activeObject, (val, oldVal) => {
     if (!val && oldVal) {
         setTimeout(() => {
@@ -147,10 +108,8 @@ watch(() => mapStore.activeObject, (val, oldVal) => {
 
 onMounted(async () => {
     await init()
-    await objectsStore.fetchObjects()
 
     const urlParams = new URLSearchParams(window.location.search)
-
     if (urlParams.has('object')) {
         const id = urlParams.get('object')
         const obj = objectsStore.items.find((item) => item.id == id)
