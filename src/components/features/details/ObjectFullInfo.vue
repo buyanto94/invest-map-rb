@@ -3,7 +3,7 @@
         <app-modal :open="isOpen" @update:open="emit('update:isOpen', $event)" scrollable size="lg">
             <template #header>
                 <h5 class="custom-modal__title">Полная информация об объекте</h5>
-                <div class="custom-modal__header-btn" @click="callPrint()">
+                <div class="custom-modal__header-btn" @click="printElement('print-content')">
                     <i class="fa fa-print" aria-hidden="true"></i>
                 </div>
             </template>
@@ -118,6 +118,7 @@
 <script setup>
 import AppModal from '@/components/ui/AppModal.vue'
 import { useFormatters } from '@/composables/useFormatters'
+import { usePrint } from '@/composables/usePrint'
 
 defineProps({
     isOpen: Boolean,
@@ -127,35 +128,5 @@ defineProps({
 const emit = defineEmits(['update:isOpen'])
 
 const { getCategoryName, getDistrictName } = useFormatters()
-
-const callPrint = () => {
-    const prtContent = document.getElementById('print-content')
-    if (!prtContent) return
-
-    const WinPrint = window.open('', '', 'left=50,top=50,width=800,height=640,toolbar=0,scrollbars=1,status=0')
-    
-    WinPrint.document.write(`
-        <html>
-            <head>
-                <title>Печать объекта</title>
-                <style>
-                    body { font-family: sans-serif; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th, td { border: 1px solid #333; padding: 8px; text-align: left; }
-                    th { background-color: #f0f0f0; }
-                </style>
-            </head>
-            <body>
-                ${prtContent.innerHTML}
-            </body>
-        </html>
-    `)
-    
-    WinPrint.document.close()
-    WinPrint.focus()
-    setTimeout(() => {
-        WinPrint.print()
-        WinPrint.close()
-    }, 500)
-}
+const { printElement } = usePrint()
 </script>
