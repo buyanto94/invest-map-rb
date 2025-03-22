@@ -1,8 +1,11 @@
 <template>
-    <the-topbar @mapToBuryatia="showBuryatia" @shareModal="shareModal = true" />
+    <the-topbar @mapToBuryatia="showBuryatia" @shareModal="openShareModal" />
+
     <teleport to="body">
         <app-message />
-        <app-modal v-model:open="shareModal" scrollable centered size="lg">
+
+        <!-- Модалка "Поделиться" -->
+        <app-modal v-model:open="isShareModalOpen" scrollable centered size="lg">
             <template #header>
                 <h5 class="custom-modal__title">Поделиться картой</h5>
             </template>
@@ -10,7 +13,9 @@
                 <ShareModal @copied="close" :zoom="zoom" :center="center" />
             </template>
         </app-modal>
-        <app-modal v-model:open="selectMapModal" centered>
+
+        <!-- Модалка "Выбор карты" -->
+        <app-modal v-model:open="isMapSelectModalOpen" centered>
             <template #header>
                 <h5 class="custom-modal__title">Выбрать карту</h5>
             </template>
@@ -22,8 +27,8 @@
         <div class="col-auto">
             <div class="panels">
                 <div class="panels__item">
-                    <the-navbar @mapToBuryatia="showBuryatia" @shareModal="shareModal = true"
-                        @selectMapModal="selectMapModal = true" />
+                    <the-navbar @mapToBuryatia="showBuryatia" @shareModal="openShareModal"
+                        @selectMapModal="openMapSelectModal" />
                 </div>
                 <div class="panels__item">
                     <filter-panel v-model="filter" :findObjects="findObjects"
@@ -42,12 +47,14 @@
 
 <script setup>
 import { ref, watch, onMounted } from 'vue'
-import { polygonCenter } from '@/utils/polygon'
+
 import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
 import { useUIStore } from '@/stores/ui'
 import { useAppInit } from '@/composables/useAppInit'
 import { useObjectFilter } from '@/composables/useObjectFilter'
+import { useMapControl } from '@/composables/useMapControl'
+import { useUrlSync } from '@/composables/useUrlSync'
 
 import AppModal from './components/ui/AppModal.vue'
 import AppMessage from './components/ui/AppMessage.vue'
@@ -64,63 +71,58 @@ const mapStore = useMapStore()
 const uiStore = useUIStore()
 const { init } = useAppInit()
 
-const { filter, findObjects, filteredByMainParams, searchResultsText } = useObjectFilter()
 
-const shareModal = ref(false)
-const selectMapModal = ref(false)
-const zoom = ref(6)
-const center = ref([53.328248, 108.837283])
+// Управление картой
+// Вся логика позиционирования карты
+const { zoom, center, showBuryatia, focusOnObject } = useMapControl()
 
-const showBuryatia = () => {
-    zoom.value = 6
-    center.value = [53.328248, 108.837283]
-}
-
-const showObjectInfo = () => {
-    setTimeout(() => {
-        const obj = mapStore.activeObject
-        if (!obj) return
-
-        if (Array.isArray(obj.coords[0])) {
-            center.value = [...polygonCenter(obj.coords)]
-        } else {
-            center.value = [...obj.coords]
+// Следим за выбранным объектом в сторе
+watch(
+    () => mapStore.activeObject,
+    (newVal, oldVal) => {
+        if (newVal && !oldVal) {
+            focusOnObject(newVal)
         }
-        zoom.value = 18
-    }, 10)
+        if (!newVal && oldVal) {
+            setTimeout(() => zoom.value = 8, 100) 
+        }
+    }
+)
+
+// Фильтрация и поиск
+const {
+    filter,
+    findObjects,
+    filteredByMainParams,
+    searchResultsText
+} = useObjectFilter()
+
+// Модалки
+
+// Поделиться
+const isShareModalOpen = ref(false)
+const openShareModal = () => {
+    isShareModalOpen.value = true
 }
 
-watch(() => mapStore.activeObject, (val, oldVal) => {
-    if (!val && oldVal) {
-        setTimeout(() => {
-            if (Array.isArray(oldVal.coords[0])) {
-                center.value = [...polygonCenter(oldVal.coords)]
-            } else {
-                center.value = [...oldVal.coords]
-            }
-            zoom.value = 8
-        }, 10)
-    }
-    if (val) {
-        showObjectInfo()
+// Выбор карты в мобильной версии
+const isMapSelectModalOpen = ref(false)
+const openMapSelectModal = () => {
+    isMapSelectModalOpen.value = true
+}
+
+// Когда поделились ссылкой.
+useUrlSync({
+    objectsStore,
+    mapStore,
+    setMapState: (z, c) => {
+        zoom.value = z
+        center.value = c
     }
 })
 
 onMounted(async () => {
     await init()
-
-    const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.has('object')) {
-        const id = urlParams.get('object')
-        const obj = objectsStore.items.find((item) => item.id == id)
-        if (obj) mapStore.setActiveObject(obj)
-    }
-
-    if (urlParams.has('zoom') && urlParams.has('lat') && urlParams.has('lng')) {
-        zoom.value = +urlParams.get('zoom')
-        center.value = [urlParams.get('lat'), urlParams.get('lng')]
-    }
-
     if (window.innerWidth >= 992) {
         uiStore.setShowFilterPanel(true)
     }
