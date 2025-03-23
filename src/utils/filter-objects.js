@@ -1,52 +1,56 @@
 export function filterObjects(objects, filter) {
-    if (!filter) return objects;
+    if (!filter) return objects
 
-    let result = objects;
-
-    // 1. Фильтрация по основным параметрам
-    result = result.filter((item) => {
-        // Район (строгое сравнение, если выбран)
-        if (filter.district && item.municipalArea != filter.district) return false;
+    return objects.filter((item) => {
+        // Район
+        if (filter.district && String(item.municipalArea) !== String(filter.district)) return false
 
         // Категория земель
-        if (filter.landCategory && item.landCategory != filter.landCategory) return false;
+        if (filter.landCategory && String(item.landCategory) !== String(filter.landCategory)) return false
 
-        // Тип площадки (Greenfield/Brownfield)
-        if (filter.typeArea && item.typeArea.toLowerCase() !== filter.typeArea) return false;
+        // Тип площадки
+        if (filter.typeArea && item.typeArea?.toLowerCase() !== filter.typeArea) return false
 
         // Форма собственности
-        if (filter.typeOfOwnership && item.typeOfOwnership.id !== filter.typeOfOwnership) return false;
+        if (filter.typeOfOwnership && item.typeOfOwnership?.id !== filter.typeOfOwnership) return false
 
-        // Площадь (с конвертацией запятой в точку)
-        const itemArea = parseFloat(item.area.replace(',', '.'));
-        if (itemArea < filter.area[0] || itemArea > filter.area[1]) return false;
+        // Площадь
+        const itemArea = parseFloat(String(item.area).replace(',', '.'))
+        const [minArea, maxArea] = filter.area || [0, 999999]
+        if (itemArea < minArea || itemArea > maxArea) return false
 
-        // Дистанция до Улан-Удэ
-        if (item.distanceToUU < filter.distanceToUU[0] || item.distanceToUU > filter.distanceToUU[1]) return false;
+        // Дистанция
+        const [minDist, maxDist] = filter.distanceToUU || [0, 999999]
+        if (item.distanceToUU < minDist || item.distanceToUU > maxDist) return false
 
-        return true;
-    });
+        // Дочерние категории
+        if (filter.childCategories?.length > 0) {
+            if (!filter.childCategories.includes(item.category?.id)) return false
+        }
 
-    // 2. Фильтр по выбранным дочерним категориям
-    if (filter.childCategories && filter.childCategories.length > 0) {
-        result = result.filter(item => filter.childCategories.includes(item.category.id));
-    }
+        // Родительские группы
+        if (filter.categoriesGroups?.length > 0) {
+            if (!filter.categoriesGroups.includes(item.category?.parentId)) return false
+        }
 
-    // 3. Фильтр по родительским группам
-    if (filter.categoriesGroups && filter.categoriesGroups.length > 0) {
-        result = result.filter(item => filter.categoriesGroups.includes(item.category.parentId));
-    }
-
-    return result;
+        return true
+    })
 }
 
 export function searchObjects(objects, searchText) {
-    if (!searchText) return [];
+    if (!searchText) return []
     
-    const lowerText = searchText.toLowerCase();
+    const lowerText = searchText.toLowerCase()
     
     return objects.filter((item) => {
-        // TODO: В будущем лучше искать только по title/address/description
-        return JSON.stringify(item).toLowerCase().includes(lowerText);
-    });
+        // Поиск по конкретным полям
+        const fields = [
+            item.title,
+            item.address,
+            item.typeObject,
+            item.category?.name
+        ].filter(Boolean).join(' ').toLowerCase()
+        
+        return fields.includes(lowerText)
+    })
 }
