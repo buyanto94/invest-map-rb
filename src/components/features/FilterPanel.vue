@@ -24,20 +24,22 @@
 
             <div class="mb-3" v-if="!inputSearch">
                 <app-select :options="formatingToOptions(districtsStore.items, 'name', 'id')"
-                    @select="selectedDistrict = $event" :selected="selectedDistrict.name"
+                    @select="selectedDistrict = $event.value"
+                    :selected="districtsStore.items.find(d => d.id === selectedDistrict)?.name || 'Все районы'"
                     :nullOption="{ name: 'Все районы', value: null }" />
             </div>
         </div>
 
-        <SearchResults v-if="inputSearch" :items="findObjects" :message="searchingMessage"
-            :activeId="mapStore.activeObject?.id" @select="onSearchResultClick" />
+        <SearchResults v-if="inputSearch" :items="filtersStore.filteredObjects"
+            :message="filtersStore.searchResultsText" :activeId="mapStore.activeObject?.id"
+            @select="onSearchResultClick" />
 
         <div class="filter-panel__body custom-scroll" v-else>
             <div class="accordion filter-accordion" id="filter-accordion">
                 <div class="mb-3" v-for="item in referencesStore.categoryGroups" :key="item.id">
                     <div @click="toggleCollapse('accordion-' + item.id)" class="accordion-btn">
                         <label class="checkbox-btn" @click.stop>
-                            <input type="checkbox" :value="item.id" v-model="checkedCategoriesGroups" />
+                            <input type="checkbox" :value="item.id" v-model="checkedCategoryGroups" />
                             <div class="checkbox-btn__cont">
                                 <i :class="item.type === 'filter' ? 'fa fa-map-o' : 'fa fa-sun-o'"></i>
                             </div>
@@ -51,9 +53,9 @@
                             <FilterControls
                                 :landCategories="formatingToOptions(referencesStore.landCategories, 'title', 'id')"
                                 :ownershipTypes="formatingToOptions(referencesStore.ownershipTypes, 'title', 'id')"
-                                v-model:selectedLandCategory="selectedLandCategories"
-                                v-model:selectedOwnership="selectedTypeOfOwnership" v-model:typeArea="selectedTypeArea"
-                                v-model:area="area" :areaMarks="areaMarks" v-model:distances="distances"
+                                v-model:selectedLandCategory="selectedLandCategory"
+                                v-model:selectedOwnership="selectedOwnership" v-model:typeArea="selectedTypeArea"
+                                v-model:area="areaRange" :areaMarks="areaMarks" v-model:distances="distanceRange"
                                 :distancesMarks="distancesMarks" />
 
                             <div class="mb-3">
@@ -68,7 +70,7 @@
                                     <div class="category-checkbox__count">{{ countOfCategory(ch.id) }}</div>
                                 </label>
                             </div>
-                            <button class="btn btn-light" @click="checkedChildCategories = []">Сбросить фильтр
+                            <button class="btn btn-light" @click="filtersStore.resetFilters()">Сбросить фильтр
                                 категорий</button>
                         </div>
 
@@ -84,6 +86,7 @@
         </div>
     </div>
 
+    <!-- Мобильная панель поиска (SearchPanel) -->
     <div class="search-panel" v-show="uiStore.showSearchPanel">
         <div class="search-panel__close" @click="closeSearchPanel">
             <i class="fa fa-times"></i>
@@ -92,7 +95,7 @@
             <input type="search" class="form-control custom-input search-panel__input" v-model="inputSearch"
                 placeholder="Поиск объектов" />
             <div class="search-panel__nav" v-if="inputSearch">
-                <div class="search-panel__text">{{ searchingMessage }}</div>
+                <div class="search-panel__text">{{ filtersStore.searchResultsText }}</div>
                 <a class="search-panel__nav-btn" data-bs-toggle="collapse" href="#search-panel-body">
                     <i :class="searchPanelBody ? 'fa fa-globe' : 'fa fa-list'"></i>
                 </a>
@@ -100,8 +103,8 @@
         </div>
         <div class="collapse" id="search-panel-body">
             <div class="search-panel__body custom-scroll">
-                <div class="search-result" v-for="item in findObjects" :key="item.id" @click="onSearchResultClick(item)"
-                    :class="{ active: mapStore.activeObject?.id === item.id }">
+                <div class="search-result" v-for="item in filtersStore.filteredObjects" :key="item.id"
+                    @click="onSearchResultClick(item)" :class="{ active: mapStore.activeObject?.id === item.id }">
                     <div class="search-result__category">{{ item.category?.name }}</div>
                     <div class="search-result__title">{{ item.title }}</div>
                     <div class="search-result__address">{{ item.address }}</div>
@@ -113,9 +116,10 @@
 
 <script setup>
 import { ref, onMounted, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
-import AppSelect from '@/components/ui/AppSelect.vue'
 
+import AppSelect from '@/components/ui/AppSelect.vue'
 import SearchResults from './filter/SearchResults.vue'
 import FilterControls from './filter/FilterControls.vue'
 
@@ -124,36 +128,32 @@ import { useReferencesStore } from '@/stores/references'
 import { useDistrictsStore } from '@/stores/districts'
 import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
-
-const props = defineProps({
-    findObjects: Array,
-    findObjectsByParams: Array,
-    modelValue: Object,
-    searchingMessage: String,
-})
-
-const emit = defineEmits(['update:modelValue'])
+import { useFiltersStore } from '@/stores/filters'
 
 const uiStore = useUIStore()
 const referencesStore = useReferencesStore()
 const districtsStore = useDistrictsStore()
 const objectsStore = useObjectsStore()
 const mapStore = useMapStore()
+const filtersStore = useFiltersStore()
 
-const inputSearch = ref('')
+
+const {
+    inputSearch,
+    selectedDistrict,
+    selectedLandCategory,
+    selectedTypeArea,
+    selectedOwnership,
+    areaRange,
+    distanceRange,
+    checkedChildCategories,
+    checkedCategoryGroups
+} = storeToRefs(filtersStore)
+
 const searchPanelBody = ref(false)
+const distancesMarks = ref([0, 100])
+const areaMarks = ref([0, 100])
 
-const distancesMarks = ref([0, 1])
-const areaMarks = ref([0, 1])
-
-const checkedChildCategories = ref([])
-const checkedCategoriesGroups = ref([])
-const area = ref([0, 0])
-const distances = ref([0, 0])
-const selectedDistrict = ref({ name: 'Все районы', value: null })
-const selectedLandCategories = ref({ name: 'Категория земель', value: null })
-const selectedTypeArea = ref(null)
-const selectedTypeOfOwnership = ref({ name: 'Форма собственности', value: null })
 
 const formatingToOptions = (options, nameKey, valueKey) => {
     return options.map(item => ({ name: item[nameKey], value: item[valueKey] }))
@@ -165,11 +165,11 @@ const toggleCollapse = (id) => {
 }
 
 const countOfCategory = (id) => {
-    return props.findObjectsByParams.filter(item => item.category.id === id).length
+    return filtersStore.statsObjects.filter(item => item.category.id === id).length
 }
 
 const countOfCategoryGroup = (id) => {
-    return props.findObjectsByParams.filter(item => +item.category.parentId === +id).length
+    return filtersStore.statsObjects.filter(item => +item.category.parentId === +id).length
 }
 
 const freeCategory = (categoryId) => {
@@ -188,7 +188,8 @@ const onSearchResultClick = (item) => {
     if (el) new bootstrap.Collapse(el).hide()
 }
 
-const initStartParams = () => {
+
+const initRangeParams = () => {
     if (!objectsStore.items || objectsStore.items.length === 0) return
 
     let areaMax = 0
@@ -196,14 +197,14 @@ const initStartParams = () => {
 
     objectsStore.items.forEach(item => {
         if (+item.distanceToUU > distanceMax) distanceMax = +item.distanceToUU
-        const itemArea = parseFloat(item.area.replace(',', '.'))
+        const itemArea = parseFloat(String(item.area).replace(',', '.'))
         if (itemArea > areaMax) areaMax = itemArea
 
         if (!checkedChildCategories.value.includes(item.category.id)) {
             checkedChildCategories.value.push(item.category.id)
         }
-        if (!checkedCategoriesGroups.value.includes(item.category.parentId)) {
-            checkedCategoriesGroups.value.push(item.category.parentId)
+        if (!checkedCategoryGroups.value.includes(item.category.parentId)) {
+            checkedCategoryGroups.value.push(item.category.parentId)
         }
     })
 
@@ -213,36 +214,11 @@ const initStartParams = () => {
     distancesMarks.value = [0, distanceMax]
     areaMarks.value = [0, areaMax]
 
-    if (distances.value[1] === 0) distances.value = [0, distanceMax]
-    if (area.value[1] === 0) area.value = [0, areaMax]
+    filtersStore.setRanges(areaMax, distanceMax)
 }
 
-watch([
-    inputSearch,
-    checkedChildCategories,
-    checkedCategoriesGroups,
-    area,
-    distances,
-    selectedDistrict,
-    selectedLandCategories,
-    selectedTypeArea,
-    selectedTypeOfOwnership
-], () => {
-    emit('update:modelValue', {
-        inputSearch: inputSearch.value,
-        childCategories: checkedChildCategories.value,
-        categoriesGroups: checkedCategoriesGroups.value,
-        area: area.value,
-        distanceToUU: distances.value,
-        district: selectedDistrict.value.value,
-        landCategory: selectedLandCategories.value.value,
-        typeArea: selectedTypeArea.value,
-        typeOfOwnership: selectedTypeOfOwnership.value.value,
-    })
-}, { deep: true })
-
 watch(() => objectsStore.items, () => {
-    initStartParams()
+    initRangeParams()
 }, { immediate: true })
 
 onMounted(async () => {
