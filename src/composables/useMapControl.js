@@ -1,14 +1,14 @@
 import { ref } from 'vue'
 import { polygonCenter } from '@/utils/polygon'
-
+import { MAP_SETTINGS } from '@/config/map'
 
 export function useMapControl() {
-    const zoom = ref(6)
-    const center = ref([53.328248, 108.837283])
+    const zoom = ref(MAP_SETTINGS.DEFAULT_ZOOM)
+    const center = ref(MAP_SETTINGS.DEFAULT_CENTER)
 
     const showBuryatia = () => {
-        zoom.value = 6
-        center.value = [53.328248, 108.837283]
+        zoom.value = MAP_SETTINGS.DEFAULT_ZOOM
+        center.value = MAP_SETTINGS.DEFAULT_CENTER
     }
 
     const focusOnObject = (object) => {
@@ -20,7 +20,7 @@ export function useMapControl() {
             } else {
                 center.value = [...object.coords]
             }
-            zoom.value = 18
+            zoom.value = MAP_SETTINGS.OBJECT_FOCUS_ZOOM
         }, 10)
     }
 
