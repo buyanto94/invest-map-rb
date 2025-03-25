@@ -49,7 +49,6 @@ import { ref, watch, onMounted } from 'vue'
 
 import { useMapStore } from '@/stores/map'
 import { useUIStore } from '@/stores/ui'
-import { useObjectsStore } from '@/stores/objects'
 import { useFiltersStore } from '@/stores/filters'
 import { useAppInit } from '@/composables/useAppInit'
 import { useMapControl } from '@/composables/useMapControl'
@@ -68,9 +67,9 @@ import SelectMapModal from './components/map/SelectMapModal.vue'
 const mapStore = useMapStore()
 const uiStore = useUIStore()
 const filtersStore = useFiltersStore()
-const objectsStore = useObjectsStore()
 
 const { init } = useAppInit()
+const { initializeFromUrl } = useUrlSync()
 
 const { zoom, center, showBuryatia, focusOnObject } = useMapControl()
 
@@ -94,18 +93,14 @@ const openShareModal = () => isShareModalOpen.value = true
 const isMapSelectModalOpen = ref(false)
 const openMapSelectModal = () => isMapSelectModalOpen.value = true
 
-
-useUrlSync({
-    objectsStore,
-    mapStore,
-    setMapState: (z, c) => {
-        zoom.value = z
-        center.value = c
-    }
-})
-
 onMounted(async () => {
     await init()
+    
+    initializeFromUrl((z, c) => {
+        zoom.value = z
+        center.value = c
+    })
+
     if (window.innerWidth >= 992) {
         uiStore.setShowFilterPanel(true)
     }
