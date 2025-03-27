@@ -10,7 +10,7 @@ export const TILE_LAYERS = [
     {
         name: 'Схема',
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        subdomains: ['a', 'b', 'c'],
+        subdomains: 'abc',
     },
     {
         name: 'Спутник',
