@@ -14,7 +14,7 @@
             </template>
         </app-modal>
 
-        <!-- Модалка "Выбор карты" -->
+        <!-- Модалка "Выбор карты" в мобильной версии -->
         <app-modal v-model:open="isMapSelectModalOpen" centered>
             <template #header>
                 <h5 class="custom-modal__title">Выбрать карту</h5>
@@ -31,8 +31,7 @@
                         @selectMapModal="openMapSelectModal" />
                 </div>
                 <div class="panels__item">
-                    <filter-panel v-model="filter" :findObjects="findObjects"
-                        :findObjectsByParams="filteredByMainParams" :searchingMessage="searchResultsText" />
+                    <filter-panel />
                 </div>
                 <div class="panels__item">
                     <object-details />
@@ -40,7 +39,7 @@
             </div>
         </div>
         <div class="col">
-            <the-map :markers="findObjects" v-model:zoom="zoom" v-model:center="center" />
+            <the-map :markers="filtersStore.filteredObjects" v-model:zoom="zoom" v-model:center="center" />
         </div>
     </div>
 </template>
@@ -48,11 +47,10 @@
 <script setup>
 import { ref, watch, onMounted } from 'vue'
 
-import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
 import { useUIStore } from '@/stores/ui'
+import { useFiltersStore } from '@/stores/filters'
 import { useAppInit } from '@/composables/useAppInit'
-import { useObjectFilter } from '@/composables/useObjectFilter'
 import { useMapControl } from '@/composables/useMapControl'
 import { useUrlSync } from '@/composables/useUrlSync'
 
@@ -66,17 +64,15 @@ import ObjectDetails from './components/features/ObjectDetails.vue'
 import ShareModal from './components/features/ShareModal.vue'
 import SelectMapModal from './components/map/SelectMapModal.vue'
 
-const objectsStore = useObjectsStore()
 const mapStore = useMapStore()
 const uiStore = useUIStore()
+const filtersStore = useFiltersStore()
+
 const { init } = useAppInit()
+const { initializeFromUrl } = useUrlSync()
 
-
-// Управление картой
-// Вся логика позиционирования карты
 const { zoom, center, showBuryatia, focusOnObject } = useMapControl()
 
-// Следим за выбранным объектом в сторе
 watch(
     () => mapStore.activeObject,
     (newVal, oldVal) => {
@@ -84,45 +80,27 @@ watch(
             focusOnObject(newVal)
         }
         if (!newVal && oldVal) {
-            setTimeout(() => zoom.value = 8, 100) 
+            // Возврат к общему виду при закрытии (думаю лучше убрать, как будто не удобно)
+            // setTimeout(() => zoom.value = 8, 100) 
         }
     }
 )
 
-// Фильтрация и поиск
-const {
-    filter,
-    findObjects,
-    filteredByMainParams,
-    searchResultsText
-} = useObjectFilter()
-
 // Модалки
-
-// Поделиться
 const isShareModalOpen = ref(false)
-const openShareModal = () => {
-    isShareModalOpen.value = true
-}
+const openShareModal = () => isShareModalOpen.value = true
 
-// Выбор карты в мобильной версии
 const isMapSelectModalOpen = ref(false)
-const openMapSelectModal = () => {
-    isMapSelectModalOpen.value = true
-}
-
-// Когда поделились ссылкой.
-useUrlSync({
-    objectsStore,
-    mapStore,
-    setMapState: (z, c) => {
-        zoom.value = z
-        center.value = c
-    }
-})
+const openMapSelectModal = () => isMapSelectModalOpen.value = true
 
 onMounted(async () => {
     await init()
+    
+    initializeFromUrl((z, c) => {
+        zoom.value = z
+        center.value = c
+    })
+
     if (window.innerWidth >= 992) {
         uiStore.setShowFilterPanel(true)
     }
