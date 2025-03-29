@@ -5,16 +5,21 @@
             <l-popup>{{ item.title }}</l-popup>
         </l-polygon>
 
-        <l-marker :lat-lng="centerCoords" @click="onClick">
-            <l-icon :icon-size="iconSize">
-                <img :src="iconUrl" class="marker-icon" :alt="item.title" />
+        <l-marker :lat-lng="centerCoords" @click="onClick" :z-index-offset="isActive ? 1000 : 0">
+            <l-icon :icon-size="iconSize" class-name="custom-marker-icon">
+                <div class="marker-wrapper" :class="{ 'marker-active': isActive }">
+                    <img :src="iconUrl" class="marker-img" :alt="item.title" />
+                </div>
             </l-icon>
         </l-marker>
     </div>
+
     <div v-else>
-        <l-marker v-if="isValidCoords" :lat-lng="item.coords" @click="onClick">
-            <l-icon :icon-size="iconSize">
-                <img :src="iconUrl" class="marker-icon" :alt="item.title" />
+        <l-marker v-if="isValidCoords" :lat-lng="item.coords" @click="onClick" :z-index-offset="isActive ? 1000 : 0">
+            <l-icon :icon-size="iconSize" class-name="custom-marker-icon">
+                <div class="marker-wrapper" :class="{ 'marker-active': isActive }">
+                    <img :src="iconUrl" class="marker-img" :alt="item.title" />
+                </div>
             </l-icon>
         </l-marker>
     </div>
@@ -35,12 +40,10 @@ const props = defineProps({
 })
 
 const mapStore = useMapStore()
-const iconSize = [30, 30]
+const iconSize = [34, 34]
 
 const isPolygon = computed(() => Array.isArray(props.item.coords?.[0]))
-
 const isValidCoords = computed(() => props.item.coords?.length === 2)
-
 const isActive = computed(() => mapStore.activeObject?.id === props.item.id)
 
 const iconUrl = computed(() => {
@@ -53,7 +56,6 @@ const iconUrl = computed(() => {
 
 const polygonCoords = computed(() => {
     if (!isPolygon.value) return []
-
     const points = props.item.coords[0][0] ? props.item.coords[0][0] : props.item.coords[0]
 
     return points.map(el => {
@@ -75,8 +77,27 @@ const onClick = () => {
 </script>
 
 <style scoped>
-.marker-icon {
+.marker-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.marker-img {
     max-width: 100% !important;
+    max-height: 100% !important;
     display: block;
+}
+
+.marker-active {
+    background-color: #fff;
+    border: 3px solid #f7ce38;
+    padding: 2px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 </style>
