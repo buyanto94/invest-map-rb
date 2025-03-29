@@ -1,22 +1,46 @@
 <template>
     <div id="map">
-        <l-map ref="mapRef" :zoom="zoom" :center="center" :noBlockingAnimations="true" :options="{ zoomControl: false }"
-            @click="handleMapClick" @update:zoom="emit('update:zoom', $event)"
-            @update:center="emit('update:center', $event)">
-            <l-tile-layer v-if="mapStore.activeLayer" :key="mapStore.activeLayer.name" :max-zoom="18"
-                :url="mapStore.activeLayer.url" :subdomains="mapStore.activeLayer.subdomains"
-                :name="mapStore.activeLayer.name"></l-tile-layer>
-
+        <l-map
+            ref="mapRef"
+            :zoom="zoom"
+            :center="center"
+            :noBlockingAnimations="true"
+            :options="{ zoomControl: false }"
+            @click="handleMapClick"
+            @update:zoom="emit('update:zoom', $event)"
+            @update:center="emit('update:center', $event)"
+            @ready="onMapReady"
+        >
+            <l-tile-layer
+                v-if="mapStore.activeLayer"
+                :key="mapStore.activeLayer.name"
+                :max-zoom="18"
+                :url="mapStore.activeLayer.url"
+                :subdomains="mapStore.activeLayer.subdomains"
+                :name="mapStore.activeLayer.name"
+            ></l-tile-layer>
+            
             <l-control-zoom position="topright"></l-control-zoom>
 
             <marker-cluster>
-                <MapFeature v-for="item in markers" :key="item.id" :item="item" />
+                <MapFeature 
+                    v-for="item in markers" 
+                    :key="item.id" 
+                    :item="item" 
+                />
             </marker-cluster>
 
             <div v-if="districtsStore.showDistricts">
-                <l-polygon v-for="item in districtsStore.items" :key="item.id" :lat-lngs="item.geometry.coordinates"
-                    :fillOpacity="0" @click="focusedDistrict = item.id" :weight="item.id === focusedDistrict ? 3 : 1"
-                    :fill="true" color="#3388ff">
+                <l-polygon
+                    v-for="item in districtsStore.items"
+                    :key="item.id"
+                    :lat-lngs="item.geometry.coordinates"
+                    :fillOpacity="0"
+                    @click="focusedDistrict = item.id"
+                    :weight="item.id === focusedDistrict ? 3 : 1"
+                    :fill="true"
+                    color="#3388ff"
+                >
                     <l-popup>{{ item.name }}</l-popup>
                 </l-polygon>
             </div>
@@ -25,18 +49,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { LMap, LTileLayer, LControlZoom, LPolygon, LPopup } from '@vue-leaflet/vue-leaflet'
 import MarkerCluster from './MarkerCluster.vue'
 import MapFeature from './MapFeature.vue'
 
 import { useMapStore } from '@/stores/map'
 import { useDistrictsStore } from '@/stores/districts'
+import { polygonCenter } from '@/utils/polygon'
 
-defineProps({
+const props = defineProps({
     zoom: Number,
     center: [Array, Object],
     markers: Array,
+    paddingLeft: { type: Number, default: 0 }
 })
 
 const emit = defineEmits(['update:zoom', 'update:center'])
@@ -45,11 +71,44 @@ const mapStore = useMapStore()
 const districtsStore = useDistrictsStore()
 
 const mapRef = ref(null)
+const leafletObject = ref(null)
 const focusedDistrict = ref(null)
+
+const onMapReady = (map) => {
+    leafletObject.value = map
+}
 
 const handleMapClick = () => {
     focusedDistrict.value = null
 }
+
+watch(() => mapStore.activeObject, async (newVal) => {
+    if (newVal && leafletObject.value) {
+        await nextTick()
+        
+        let targetCoords = null
+
+        if (Array.isArray(newVal.coords) && newVal.coords.length > 0) {
+            if (Array.isArray(newVal.coords[0])) {
+                targetCoords = polygonCenter(newVal.coords)
+            } else {
+                targetCoords = newVal.coords
+            }
+        }
+
+        if (targetCoords && !isNaN(targetCoords[0]) && !isNaN(targetCoords[1])) {
+            const bounds = [targetCoords, targetCoords]
+
+            
+            leafletObject.value.fitBounds(bounds, {
+                paddingTopLeft: [props.paddingLeft, 0],
+                maxZoom: leafletObject.value.getZoom(),
+                animate: true,
+                duration: 1
+            })
+        }
+    }
+})
 </script>
 
 <style lang="scss" scoped>

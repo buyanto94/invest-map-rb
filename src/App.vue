@@ -24,7 +24,7 @@
     <div class="layout-container">
         
         <div class="map-layer">
-            <the-map :markers="filtersStore.filteredObjects" v-model:zoom="zoom" v-model:center="center" />
+            <the-map :markers="filtersStore.filteredObjects" v-model:zoom="zoom" v-model:center="center" :paddingLeft="sidebarWidth"/>
         </div>
 
         <div class="ui-layer">
@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted } from 'vue'
+import { ref,computed, onMounted } from 'vue'
 
 import { useMapStore } from '@/stores/map'
 import { useUIStore } from '@/stores/ui'
@@ -73,16 +73,25 @@ const filtersStore = useFiltersStore()
 
 const { init } = useAppInit()
 
-const { zoom, center, showBuryatia, focusOnObject } = useMapControl()
+const { zoom, center, showBuryatia } = useMapControl()
 
-watch(
-    () => mapStore.activeObject,
-    (newVal) => {
-        if (newVal) {
-            focusOnObject(newVal)
-        }
+
+
+const sidebarWidth = computed(() => {
+    if (window.innerWidth < 992) return 0
+    
+    let width = 65
+    
+    if (uiStore.showFilterPanel) {
+        width += 360
     }
-)
+    
+    if (mapStore.activeObject) {
+        width += 400
+    }
+    
+    return width
+})
 
 const isShareModalOpen = ref(false)
 const openShareModal = () => isShareModalOpen.value = true
