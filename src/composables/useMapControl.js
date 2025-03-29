@@ -20,7 +20,6 @@ export function useMapControl() {
             } else {
                 center.value = [...object.coords]
             }
-            zoom.value = MAP_SETTINGS.OBJECT_FOCUS_ZOOM
         }, 10)
     }
 

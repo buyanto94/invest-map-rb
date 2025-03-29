@@ -75,13 +75,9 @@ const { zoom, center, showBuryatia, focusOnObject } = useMapControl()
 
 watch(
     () => mapStore.activeObject,
-    (newVal, oldVal) => {
-        if (newVal && !oldVal) {
+    (newVal) => {
+        if (newVal) {
             focusOnObject(newVal)
-        }
-        if (!newVal && oldVal) {
-            // Возврат к общему виду при закрытии (думаю лучше убрать, как будто не удобно)
-            // setTimeout(() => zoom.value = 8, 100) 
         }
     }
 )
