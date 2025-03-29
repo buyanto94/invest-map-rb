@@ -4,7 +4,6 @@
     <teleport to="body">
         <app-message />
 
-        <!-- Модалка "Поделиться" -->
         <app-modal v-model:open="isShareModalOpen" scrollable centered size="lg">
             <template #header>
                 <h5 class="custom-modal__title">Поделиться картой</h5>
@@ -14,7 +13,6 @@
             </template>
         </app-modal>
 
-        <!-- Модалка "Выбор карты" в мобильной версии -->
         <app-modal v-model:open="isMapSelectModalOpen" centered>
             <template #header>
                 <h5 class="custom-modal__title">Выбрать карту</h5>
@@ -23,12 +21,20 @@
         </app-modal>
     </teleport>
 
-    <div class="row g-0 h-100">
-        <div class="col-auto">
+    <div class="layout-container">
+        
+        <div class="map-layer">
+            <the-map :markers="filtersStore.filteredObjects" v-model:zoom="zoom" v-model:center="center" />
+        </div>
+
+        <div class="ui-layer">
             <div class="panels">
                 <div class="panels__item">
-                    <the-navbar @mapToBuryatia="showBuryatia" @shareModal="openShareModal"
-                        @selectMapModal="openMapSelectModal" />
+                    <the-navbar 
+                        @mapToBuryatia="showBuryatia" 
+                        @shareModal="openShareModal"
+                        @selectMapModal="openMapSelectModal" 
+                    />
                 </div>
                 <div class="panels__item">
                     <filter-panel />
@@ -37,9 +43,6 @@
                     <object-details />
                 </div>
             </div>
-        </div>
-        <div class="col">
-            <the-map :markers="filtersStore.filteredObjects" v-model:zoom="zoom" v-model:center="center" />
         </div>
     </div>
 </template>
@@ -69,7 +72,6 @@ const uiStore = useUIStore()
 const filtersStore = useFiltersStore()
 
 const { init } = useAppInit()
-const { initializeFromUrl } = useUrlSync()
 
 const { zoom, center, showBuryatia, focusOnObject } = useMapControl()
 
@@ -82,12 +84,13 @@ watch(
     }
 )
 
-// Модалки
 const isShareModalOpen = ref(false)
 const openShareModal = () => isShareModalOpen.value = true
 
 const isMapSelectModalOpen = ref(false)
 const openMapSelectModal = () => isMapSelectModalOpen.value = true
+
+const { initializeFromUrl } = useUrlSync()
 
 onMounted(async () => {
     await init()
@@ -104,23 +107,46 @@ onMounted(async () => {
 </script>
 
 <style lang="scss" scoped>
-.panels {
-    display: flex;
-    flex-wrap: wrap;
+.layout-container {
     position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.map-layer {
+    position: absolute;
     top: 0;
     left: 0;
-    margin: 0;
-    z-index: 1000;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
 
-    a {
-        text-decoration: none;
-    }
+.ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10; 
+    pointer-events: none; 
+    display: flex;
+    flex-direction: column;
+}
+
+.panels {
+    display: flex;
+    flex-wrap: nowrap;
+    height: 100%;
+    pointer-events: none;
 
     &__item {
         flex: 0 0 auto;
         width: auto;
         max-width: 100%;
+        height: 100%;
+        pointer-events: auto; 
     }
 }
 </style>

@@ -47,6 +47,7 @@
     padding: 30px 20px 20px;
     overflow-y: auto;
     z-index: 9;
+    position: relative;
 
     &::-webkit-scrollbar {
         width: 6px;
