@@ -1,7 +1,7 @@
 <template>
     <div class="top-panel">
         <div class="top-panel-item" title="Инвестиционный портал">
-            <a href="https://invest-buryatia.ru/" class="top-panel__btn show-site" target="_blank"></a>
+            <a :href="PORTAL_URL" class="top-panel__btn show-site" target="_blank"></a>
         </div>
         <div class="top-panel-item" title="К Республике Бурятия">
             <button class="top-panel__btn show-bur" @click="emit('mapToBuryatia')"></button>
@@ -35,6 +35,7 @@
 <script setup>
 import { useMapStore } from '@/stores/map'
 import { useDistrictsStore } from '@/stores/districts'
+import { PORTAL_URL } from '@/config/constants'
 
 const emit = defineEmits(['mapToBuryatia', 'shareModal'])
 const mapStore = useMapStore()

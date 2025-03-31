@@ -3,6 +3,7 @@ import iconBuilding from '@/assets/icons/building.png'
 import iconPlace from '@/assets/icons/place.png'
 
 export const REMOTE_ASSETS_URL = 'https://invest-buryatia.ru'
+export const PORTAL_URL = 'https://invest-buryatia.ru'
 
 export const OBJECT_ICONS = {
     default: iconLand,

@@ -38,7 +38,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="https://invest-buryatia.ru/" target="_blank">Инвестиционный
+                            <a class="dropdown-item" :href="PORTAL_URL" target="_blank">Инвестиционный
                                 портал</a>
                         </li>
                         <li>
@@ -57,6 +57,7 @@
 
 <script setup>
 import { useUIStore } from '@/stores/ui'
+import { PORTAL_URL } from '@/config/constants'
 
 const emit = defineEmits(['mapToBuryatia', 'shareModal', 'selectMapModal'])
 const uiStore = useUIStore()

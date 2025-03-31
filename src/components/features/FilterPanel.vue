@@ -62,7 +62,7 @@
                                 <label class="category-checkbox" v-for="ch in item.child" :key="ch.id">
                                     <input type="checkbox" :value="ch.id" v-model="checkedChildCategories" />
                                     <div class="category-checkbox__btn">
-                                        <img :src="'https://invest-buryatia.ru' + ch.img" v-if="ch.img" />
+                                        <img :src="REMOTE_ASSETS_URL + ch.img" v-if="ch.img" />
                                         <img :src="ch.type ? mapStore.icons[ch.type] : mapStore.icons['default']"
                                             v-else />
                                     </div>
@@ -129,6 +129,7 @@ import { useDistrictsStore } from '@/stores/districts'
 import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
 import { useFiltersStore } from '@/stores/filters'
+import { REMOTE_ASSETS_URL } from '@/config/constants'
 
 const uiStore = useUIStore()
 const referencesStore = useReferencesStore()
