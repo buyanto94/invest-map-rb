@@ -11,15 +11,20 @@ export const useFiltersStore = defineStore('filters', () => {
     // Значения фильтров
     const selectedDistrict = ref(null)
     const selectedLandCategory = ref(null)
-    const selectedTypeArea = ref(null) // Greenfield / Brownfield
+    const selectedTypeArea = ref(null)
     const selectedOwnership = ref(null)
     
+
     const areaRange = ref([0, 0])
     const distanceRange = ref([0, 0]) 
     
+    const limits = ref({
+        area: [0, 100],
+        distance: [0, 100]
+    })
+    
     const checkedChildCategories = ref([])
     const checkedCategoryGroups = ref([])
-
 
     const filteredObjects = computed(() => {
         const items = objectsStore.items
@@ -68,11 +73,46 @@ export const useFiltersStore = defineStore('filters', () => {
         selectedOwnership.value = null
         checkedChildCategories.value = []
         checkedCategoryGroups.value = []
+        
+        areaRange.value = [limits.value.area[0], limits.value.area[1]]
+        distanceRange.value = [limits.value.distance[0], limits.value.distance[1]]
     }
 
-    function setRanges(maxArea, maxDistance) {
-        if (areaRange.value[1] === 0) areaRange.value = [0, maxArea]
-        if (distanceRange.value[1] === 0) distanceRange.value = [0, maxDistance]
+    function initFiltersFromData() {
+        const items = objectsStore.items
+        if (!items || items.length === 0) return
+
+        let areaMax = 0
+        let distanceMax = 0
+        const categories = new Set()
+        const groups = new Set()
+
+        items.forEach(item => {
+            const dist = Number(item.distanceToUU)
+            if (dist > distanceMax) distanceMax = dist
+            
+            const itemArea = parseFloat(String(item.area).replace(',', '.'))
+            if (itemArea > areaMax) areaMax = itemArea
+
+            if (item.category?.id) categories.add(item.category.id)
+            if (item.category?.parentId) groups.add(item.category.parentId)
+        })
+
+        areaMax = Math.ceil(areaMax)
+        distanceMax = Math.ceil(distanceMax)
+
+        limits.value.area = [0, areaMax]
+        limits.value.distance = [0, distanceMax]
+
+        if (areaRange.value[1] === 0) areaRange.value = [0, areaMax]
+        if (distanceRange.value[1] === 0) distanceRange.value = [0, distanceMax]
+
+        if (checkedChildCategories.value.length === 0) {
+            checkedChildCategories.value = Array.from(categories)
+        }
+        if (checkedCategoryGroups.value.length === 0) {
+            checkedCategoryGroups.value = Array.from(groups)
+        }
     }
 
     return {
@@ -85,12 +125,13 @@ export const useFiltersStore = defineStore('filters', () => {
         distanceRange,
         checkedChildCategories,
         checkedCategoryGroups,
+        limits,
         
         filteredObjects,
         statsObjects,
         searchResultsText,
         
         resetFilters,
-        setRanges
+        initFiltersFromData
     }
 })

@@ -55,8 +55,8 @@
                                 :ownershipTypes="formatingToOptions(referencesStore.ownershipTypes, 'title', 'id')"
                                 v-model:selectedLandCategory="selectedLandCategory"
                                 v-model:selectedOwnership="selectedOwnership" v-model:typeArea="selectedTypeArea"
-                                v-model:area="areaRange" :areaMarks="areaMarks" v-model:distances="distanceRange"
-                                :distancesMarks="distancesMarks" />
+                                v-model:area="areaRange" :areaMarks="filtersStore.limits.area"
+                                v-model:distances="distanceRange" :distancesMarks="filtersStore.limits.distance" />
 
                             <div class="mb-3">
                                 <label class="category-checkbox" v-for="ch in item.child" :key="ch.id">
@@ -152,9 +152,6 @@ const {
 } = storeToRefs(filtersStore)
 
 const searchPanelBody = ref(false)
-const distancesMarks = ref([0, 100])
-const areaMarks = ref([0, 100])
-
 
 const formatingToOptions = (options, nameKey, valueKey) => {
     return options.map(item => ({ name: item[nameKey], value: item[valueKey] }))
@@ -189,37 +186,8 @@ const onSearchResultClick = (item) => {
     if (el) new bootstrap.Collapse(el).hide()
 }
 
-
-const initRangeParams = () => {
-    if (!objectsStore.items || objectsStore.items.length === 0) return
-
-    let areaMax = 0
-    let distanceMax = 0
-
-    objectsStore.items.forEach(item => {
-        if (+item.distanceToUU > distanceMax) distanceMax = +item.distanceToUU
-        const itemArea = parseFloat(String(item.area).replace(',', '.'))
-        if (itemArea > areaMax) areaMax = itemArea
-
-        if (!checkedChildCategories.value.includes(item.category.id)) {
-            checkedChildCategories.value.push(item.category.id)
-        }
-        if (!checkedCategoryGroups.value.includes(item.category.parentId)) {
-            checkedCategoryGroups.value.push(item.category.parentId)
-        }
-    })
-
-    areaMax = Math.ceil(areaMax)
-    distanceMax = Math.ceil(distanceMax)
-
-    distancesMarks.value = [0, distanceMax]
-    areaMarks.value = [0, areaMax]
-
-    filtersStore.setRanges(areaMax, distanceMax)
-}
-
 watch(() => objectsStore.items, () => {
-    initRangeParams()
+    filtersStore.initFiltersFromData()
 }, { immediate: true })
 
 onMounted(async () => {
