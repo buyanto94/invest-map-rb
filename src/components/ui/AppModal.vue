@@ -65,23 +65,3 @@ watch(() => props.open, (val) => {
     else closeModal()
 })
 </script>
-
-<style lang="scss" scoped>
-.custom-modal {
-    &__header-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 24px;
-        line-height: 30px;
-        text-align: center;
-        cursor: pointer;
-        margin-left: 15px;
-    }
-
-    &__title {
-        flex-grow: 1;
-        font-size: 24px;
-        line-height: 30px;
-    }
-}
-</style>

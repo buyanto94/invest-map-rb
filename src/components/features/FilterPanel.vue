@@ -86,42 +86,18 @@
         </div>
     </div>
 
-    <!-- Мобильная панель поиска (SearchPanel) -->
-    <div class="search-panel" v-show="uiStore.showSearchPanel">
-        <div class="search-panel__close" @click="closeSearchPanel">
-            <i class="fa fa-times"></i>
-        </div>
-        <div class="search-panel__header">
-            <input type="search" class="form-control custom-input search-panel__input" v-model="inputSearch"
-                placeholder="Поиск объектов" />
-            <div class="search-panel__nav" v-if="inputSearch">
-                <div class="search-panel__text">{{ filtersStore.searchResultsText }}</div>
-                <a class="search-panel__nav-btn" data-bs-toggle="collapse" href="#search-panel-body">
-                    <i :class="searchPanelBody ? 'fa fa-globe' : 'fa fa-list'"></i>
-                </a>
-            </div>
-        </div>
-        <div class="collapse" id="search-panel-body">
-            <div class="search-panel__body custom-scroll">
-                <div class="search-result" v-for="item in filtersStore.filteredObjects" :key="item.id"
-                    @click="onSearchResultClick(item)" :class="{ active: mapStore.activeObject?.id === item.id }">
-                    <div class="search-result__category">{{ item.category?.name }}</div>
-                    <div class="search-result__title">{{ item.title }}</div>
-                    <div class="search-result__address">{{ item.address }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <SearchPanelMobile />
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 import AppSelect from '@/components/ui/AppSelect.vue'
 import SearchResults from './filter/SearchResults.vue'
 import FilterControls from './filter/FilterControls.vue'
+import SearchPanelMobile from './SearchPanelMobile.vue'
 
 import { useUIStore } from '@/stores/ui'
 import { useReferencesStore } from '@/stores/references'
@@ -151,8 +127,6 @@ const {
     checkedCategoryGroups
 } = storeToRefs(filtersStore)
 
-const searchPanelBody = ref(false)
-
 const formatingToOptions = (options, nameKey, valueKey) => {
     return options.map(item => ({ name: item[nameKey], value: item[valueKey] }))
 }
@@ -174,27 +148,11 @@ const freeCategory = (categoryId) => {
     return objectsStore.items.filter(item => categoryId === item.category.id)
 }
 
-const closeSearchPanel = () => {
-    mapStore.setActiveObject(null)
-    inputSearch.value = ''
-    uiStore.setShowSearchPanel(false)
-}
-
 const onSearchResultClick = (item) => {
     mapStore.setActiveObject(item)
-    const el = document.getElementById('search-panel-body')
-    if (el) new bootstrap.Collapse(el).hide()
 }
 
 watch(() => objectsStore.items, () => {
     filtersStore.initFiltersFromData()
 }, { immediate: true })
-
-onMounted(async () => {
-    const searchCollapse = document.getElementById('search-panel-body')
-    if (searchCollapse) {
-        searchCollapse.addEventListener('shown.bs.collapse', () => searchPanelBody.value = true)
-        searchCollapse.addEventListener('hidden.bs.collapse', () => searchPanelBody.value = false)
-    }
-})
 </script>
