@@ -62,9 +62,7 @@
                                 <label class="category-checkbox" v-for="ch in item.child" :key="ch.id">
                                     <input type="checkbox" :value="ch.id" v-model="checkedChildCategories" />
                                     <div class="category-checkbox__btn">
-                                        <img :src="REMOTE_ASSETS_URL + ch.img" v-if="ch.img" />
-                                        <img :src="ch.type ? mapStore.icons[ch.type] : mapStore.icons['default']"
-                                            v-else />
+                                        <img :src="getCategoryIcon(ch)" />
                                     </div>
                                     <div class="category-checkbox__text">{{ ch.name }}</div>
                                     <div class="category-checkbox__count">{{ countOfCategory(ch.id) }}</div>
@@ -105,7 +103,7 @@ import { useDistrictsStore } from '@/stores/districts'
 import { useObjectsStore } from '@/stores/objects'
 import { useMapStore } from '@/stores/map'
 import { useFiltersStore } from '@/stores/filters'
-import { REMOTE_ASSETS_URL } from '@/config/constants'
+import { useFormatters } from '@/composables/useFormatters'
 
 const uiStore = useUIStore()
 const referencesStore = useReferencesStore()
@@ -113,7 +111,7 @@ const districtsStore = useDistrictsStore()
 const objectsStore = useObjectsStore()
 const mapStore = useMapStore()
 const filtersStore = useFiltersStore()
-
+const { getCategoryIcon } = useFormatters()
 
 const {
     inputSearch,

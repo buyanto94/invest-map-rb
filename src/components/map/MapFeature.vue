@@ -8,7 +8,7 @@
         <l-marker :lat-lng="centerCoords" @click="onClick" :z-index-offset="isActive ? 1000 : 0">
             <l-icon :icon-size="iconSize" class-name="custom-marker-icon">
                 <div class="marker-wrapper" :class="{ 'marker-active': isActive }">
-                    <img :src="iconUrl" class="marker-img" :alt="item.title" />
+                    <img :src="getCategoryIcon(item.category)" class="marker-img" :alt="item.title" />
                 </div>
             </l-icon>
         </l-marker>
@@ -18,7 +18,7 @@
         <l-marker v-if="isValidCoords" :lat-lng="item.coords" @click="onClick" :z-index-offset="isActive ? 1000 : 0">
             <l-icon :icon-size="iconSize" class-name="custom-marker-icon">
                 <div class="marker-wrapper" :class="{ 'marker-active': isActive }">
-                    <img :src="iconUrl" class="marker-img" :alt="item.title" />
+                    <img :src="getCategoryIcon(item.category)" class="marker-img" :alt="item.title" />
                 </div>
             </l-icon>
         </l-marker>
@@ -30,7 +30,7 @@ import { computed } from 'vue'
 import { LMarker, LIcon, LPolygon, LPopup } from '@vue-leaflet/vue-leaflet'
 import { useMapStore } from '@/stores/map'
 import { polygonCenter } from '@/utils/polygon'
-import { REMOTE_ASSETS_URL } from '@/config/constants'
+import { useFormatters } from '@/composables/useFormatters'
 
 const props = defineProps({
     item: {
@@ -40,19 +40,13 @@ const props = defineProps({
 })
 
 const mapStore = useMapStore()
+const { getCategoryIcon } = useFormatters()
 const iconSize = [34, 34]
 
 const isPolygon = computed(() => Array.isArray(props.item.coords?.[0]))
 const isValidCoords = computed(() => props.item.coords?.length === 2)
 const isActive = computed(() => mapStore.activeObject?.id === props.item.id)
 
-const iconUrl = computed(() => {
-    if (props.item.category?.img) {
-        return REMOTE_ASSETS_URL + props.item.category.img
-    }
-    const type = props.item.category?.type
-    return (type && mapStore.icons[type]) ? mapStore.icons[type] : mapStore.icons['default']
-})
 
 const polygonCoords = computed(() => {
     if (!isPolygon.value) return []
