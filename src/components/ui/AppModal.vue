@@ -1,5 +1,5 @@
 <template>
-    <div :id="modalId" class="modal custom-modal" tabindex="-1">
+    <div ref="modalRef" class="modal custom-modal" tabindex="-1">
         <div class="modal-dialog" :class="classObject">
             <div class="modal-content">
                 <div class="modal-header">
@@ -17,20 +17,19 @@
 </template>
 
 <script setup>
-import { computed, onMounted, watch } from 'vue'
+import { computed, onMounted, watch, ref, onBeforeUnmount } from 'vue'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const props = defineProps({
     open: Boolean,
     scrollable: Boolean,
     centered: Boolean,
-    size: String // 'sm', 'lg', 'xl'
+    size: String
 })
 
 const emit = defineEmits(['update:open'])
 
-
-const modalId = `modal-${Math.random().toString(36).substr(2, 9)}`
+const modalRef = ref(null)
 let modalInstance = null
 
 const classObject = computed(() => ({
@@ -40,9 +39,10 @@ const classObject = computed(() => ({
 }))
 
 const showModal = () => {
-    if (!modalInstance) {
-        const el = document.getElementById(modalId)
-        if (el) modalInstance = new bootstrap.Modal(el)
+    if (!modalInstance && modalRef.value) {
+        modalInstance = new bootstrap.Modal(modalRef.value)
+
+        modalRef.value.addEventListener('hidden.bs.modal', onHidden)
     }
     modalInstance?.show()
 }
@@ -51,12 +51,23 @@ const closeModal = () => {
     modalInstance?.hide()
 }
 
+const onHidden = () => {
+    emit('update:open', false)
+}
+
 onMounted(() => {
-    const el = document.getElementById(modalId)
-    if (el) {
-        el.addEventListener('hidden.bs.modal', () => {
-            emit('update:open', false)
-        })
+    if (props.open) {
+        showModal()
+    }
+})
+
+
+onBeforeUnmount(() => {
+    if (modalRef.value) {
+        modalRef.value.removeEventListener('hidden.bs.modal', onHidden)
+    }
+    if (modalInstance) {
+        modalInstance.dispose()
     }
 })
 
