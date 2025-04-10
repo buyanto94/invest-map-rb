@@ -1,6 +1,6 @@
 <template>
     <div class="toast-block position-fixed top-0 end-0 p-3" v-show="uiStore.message">
-        <div id="liveToast" class="toast align-items-center text-white border-0" role="alert">
+        <div ref="toastRef" class="toast align-items-center text-white border-0" role="alert">
             <div :class="'bg-' + typeMessageClass">
                 <div class="d-flex" v-if="uiStore.message">
                     <div class="toast-body">{{ uiStore.message.text }}</div>
@@ -12,23 +12,34 @@
 </template>
 
 <script setup>
-import { computed, watch, ref } from 'vue'
+import { computed, watch, ref, onBeforeUnmount } from 'vue'
 import { useUIStore } from '@/stores/ui'
 import bootstrap from 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 const uiStore = useUIStore()
+const toastRef = ref(null)
+let toastInstance = null
 const timeoutID = ref(null)
 
 const typeMessageClass = computed(() => {
     return (uiStore.message && uiStore.message.type) ? uiStore.message.type : 'primary'
 })
 
-const showToast = () => {
-    const toastLive = document.getElementById('liveToast')
-    if (!toastLive) return
+const getToastInstance = () => {
+    if (!toastRef.value) return null
+    if (!toastInstance) {
+        toastInstance = bootstrap.Toast.getOrCreateInstance(toastRef.value)
+    }
+    return toastInstance
+}
 
-    const toast = bootstrap.Toast.getOrCreateInstance(toastLive)
+const showToast = () => {
+    const toast = getToastInstance()
+    if (!toast) return
+
     toast.show()
+
+    if (timeoutID.value) clearTimeout(timeoutID.value)
 
     timeoutID.value = setTimeout(() => {
         hideToast()
@@ -36,15 +47,17 @@ const showToast = () => {
 }
 
 const hideToast = () => {
-    const toastLive = document.getElementById('liveToast')
-    if (!toastLive) return
-
-    const toast = bootstrap.Toast.getOrCreateInstance(toastLive)
-    toast.hide()
+    const toast = getToastInstance()
+    if (toast) toast.hide()
 
     if (timeoutID.value) clearTimeout(timeoutID.value)
     uiStore.clearMessage()
 }
+
+onBeforeUnmount(() => {
+    if (timeoutID.value) clearTimeout(timeoutID.value)
+    if (toastInstance) toastInstance.dispose()
+})
 
 watch(() => uiStore.message, (val) => {
     if (val) showToast()
