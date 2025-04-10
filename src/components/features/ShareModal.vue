@@ -24,14 +24,16 @@ const mapStore = useMapStore()
 const uiStore = useUIStore()
 
 const shareLink = computed(() => {
+    const baseUrl = window.location.origin + window.location.pathname
+
     if (mapStore.activeObject) {
-        return `${window.location.host}${location.pathname}?object=${mapStore.activeObject.id}`
+        return `${baseUrl}?object=${mapStore.activeObject.id}`
     }
 
     const lat = Array.isArray(props.center) ? props.center[0] : props.center.lat
     const lng = Array.isArray(props.center) ? props.center[1] : props.center.lng
 
-    return `${window.location.host}${location.pathname}?zoom=${props.zoom}&lat=${lat}&lng=${lng}`
+    return `${baseUrl}?zoom=${props.zoom}&lat=${lat}&lng=${lng}`
 })
 
 const copyShareLink = async () => {

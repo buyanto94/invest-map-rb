@@ -8,13 +8,11 @@ export function useAppInit() {
     const referencesStore = useReferencesStore()
 
     const init = async () => {
-        console.log('Инициализация App')
         await Promise.all([
             objectsStore.fetchObjects(),
             districtsStore.fetchDistricts(),
             referencesStore.fetchAll()
         ])
-        console.log('App инициализирован')
     }
 
     return {
