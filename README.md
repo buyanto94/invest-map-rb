@@ -1,24 +1,21 @@
-# invest-map-vue2
+# Инвестиционная карта (Рефакторинг)
 
-## Project setup
+Этот проект — полная переработка моего первого коммерческого приложения на Vue, которое я создавал в 2021 году (Вот он https://github.com/dampilov94/map-frr). Главная цель создания этого репозитория — проверить свою умение превращать легаси-код в поддерживаемое приложение с чистой архитектурой и продемонстрировать мой профессиональный рост.
+
+### О проекте
+
+Интерактивная карта инвестиционных площадок. Приложение позволяет фильтровать объекты по районам, площади, типу собственности и другим параметрам.
+
+### Что изменилось (Технический стек)
+
+Я полностью переписал проект с Vue 2 на Vue 3. Вместо Options API теперь используется Composition API. Заменил Vuex на Pinia. Вся бизнес-логика (работа с картой, фильтрация данных) была вынесена в переиспользуемые composables. 
+
+### Project setup
+
 ```
 npm install
-```
 
-### Compiles and hot-reloads for development
-```
 npm run serve
-```
 
-### Compiles and minifies for production
-```
 npm run build
 ```
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
